@@ -35,6 +35,7 @@ export interface AppState {
   toolSettings: ToolSettings;
   canvasState: CanvasState;
   history: DoodleHistoryItem[];
+  currentHistoryIndex: number;
   isPrompting: boolean;
 }
 

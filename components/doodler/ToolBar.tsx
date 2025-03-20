@@ -1,6 +1,16 @@
 "use client";
 
-import { Brush, Eraser, Square, Circle, Pipette, Trash2 } from "lucide-react";
+import {
+  Brush,
+  Eraser,
+  Square,
+  Circle,
+  Pipette,
+  Trash2,
+  RotateCcw,
+  RotateCw,
+  RefreshCw,
+} from "lucide-react";
 import { useDoodler } from "@/lib/doodler-context";
 import { Tool } from "@/lib/doodler-types";
 import { cn } from "@/lib/utils";
@@ -71,10 +81,22 @@ const toolIcons: Record<string, React.ReactNode> = {
   circle: <Circle />,
   pipette: <Pipette />,
   trash2: <Trash2 />,
+  rotateCcw: <RotateCcw />,
+  rotateCw: <RotateCw />,
+  refreshCw: <RefreshCw />,
 };
 
 export function ToolBar() {
-  const { state, setCurrentTool, updateCanvasState } = useDoodler();
+  const {
+    state,
+    setCurrentTool,
+    updateCanvasState,
+    undo,
+    redo,
+    reset,
+    canUndo,
+    canRedo,
+  } = useDoodler();
 
   const handleToolClick = (tool: Tool) => {
     if (tool.id === "clear") {
@@ -114,6 +136,42 @@ export function ToolBar() {
             {toolIcons[tool.icon]}
           </button>
         ))}
+
+        {/* Divider */}
+        <div className="border-t border-border my-1"></div>
+
+        {/* History Control Buttons */}
+        <button
+          className={cn(
+            "p-2 rounded-md hover:bg-accent transition-colors duration-200",
+            !canUndo() && "opacity-50 cursor-not-allowed"
+          )}
+          onClick={undo}
+          disabled={!canUndo()}
+          title="Undo"
+        >
+          {toolIcons.rotateCcw}
+        </button>
+
+        <button
+          className={cn(
+            "p-2 rounded-md hover:bg-accent transition-colors duration-200",
+            !canRedo() && "opacity-50 cursor-not-allowed"
+          )}
+          onClick={redo}
+          disabled={!canRedo()}
+          title="Redo"
+        >
+          {toolIcons.rotateCw}
+        </button>
+
+        <button
+          className="p-2 rounded-md hover:bg-accent transition-colors duration-200"
+          onClick={reset}
+          title="Reset to Initial State"
+        >
+          {toolIcons.refreshCw}
+        </button>
       </div>
     </div>
   );

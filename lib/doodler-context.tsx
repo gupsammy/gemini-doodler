@@ -44,6 +44,7 @@ const initialState: AppState = {
     imageData: null,
   },
   history: [],
+  currentHistoryIndex: -1,
   isPrompting: false,
 };
 
@@ -58,6 +59,11 @@ const DoodlerContext = createContext<{
   clearHistory: () => void;
   goToHistoryItem: (id: string) => void;
   setIsPrompting: (isPrompting: boolean) => void;
+  undo: () => void;
+  redo: () => void;
+  reset: () => void;
+  canUndo: () => boolean;
+  canRedo: () => boolean;
 }>({
   state: initialState,
   setCurrentTool: () => {},
@@ -68,6 +74,11 @@ const DoodlerContext = createContext<{
   clearHistory: () => {},
   goToHistoryItem: () => {},
   setIsPrompting: () => {},
+  undo: () => {},
+  redo: () => {},
+  reset: () => {},
+  canUndo: () => false,
+  canRedo: () => false,
 });
 
 // Provider component
@@ -83,6 +94,7 @@ export function DoodlerProvider({ children }: { children: ReactNode }) {
           setState((prev) => ({
             ...prev,
             history: items,
+            currentHistoryIndex: items.length - 1,
           }));
         }
       } catch (error) {
@@ -142,10 +154,19 @@ export function DoodlerProvider({ children }: { children: ReactNode }) {
       await saveHistoryItem(newItem);
 
       // Update state
-      setState((prev) => ({
-        ...prev,
-        history: [...prev.history, newItem],
-      }));
+      setState((prev) => {
+        // If we've done an action after undoing, we need to remove future history items
+        const newHistory =
+          prev.currentHistoryIndex < prev.history.length - 1
+            ? prev.history.slice(0, prev.currentHistoryIndex + 1)
+            : prev.history;
+
+        return {
+          ...prev,
+          history: [...newHistory, newItem],
+          currentHistoryIndex: newHistory.length,
+        };
+      });
     } catch (error) {
       console.error("Error saving history item:", error);
     }
@@ -157,10 +178,23 @@ export function DoodlerProvider({ children }: { children: ReactNode }) {
       await deleteHistoryItemDB(id);
 
       // Update state
-      setState((prev) => ({
-        ...prev,
-        history: prev.history.filter((item) => item.id !== id),
-      }));
+      setState((prev) => {
+        const index = prev.history.findIndex((item) => item.id === id);
+        const newHistory = prev.history.filter((item) => item.id !== id);
+
+        // Adjust currentHistoryIndex if needed
+        let newIndex = prev.currentHistoryIndex;
+        if (index <= prev.currentHistoryIndex) {
+          // If we're deleting at or before current index, adjust index down
+          newIndex = Math.max(-1, prev.currentHistoryIndex - 1);
+        }
+
+        return {
+          ...prev,
+          history: newHistory,
+          currentHistoryIndex: newIndex,
+        };
+      });
     } catch (error) {
       console.error("Error deleting history item:", error);
     }
@@ -173,6 +207,7 @@ export function DoodlerProvider({ children }: { children: ReactNode }) {
       setState((prev) => ({
         ...prev,
         history: [],
+        currentHistoryIndex: -1,
       }));
     } catch (error) {
       console.error("Error clearing history:", error);
@@ -183,6 +218,8 @@ export function DoodlerProvider({ children }: { children: ReactNode }) {
   const goToHistoryItem = (id: string) => {
     const historyItem = state.history.find((item) => item.id === id);
     if (!historyItem) return;
+
+    const historyIndex = state.history.findIndex((item) => item.id === id);
 
     // Load image from history
     const img = new Image();
@@ -197,6 +234,12 @@ export function DoodlerProvider({ children }: { children: ReactNode }) {
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
       updateCanvasState({ imageData });
+
+      // Update the history index
+      setState((prev) => ({
+        ...prev,
+        currentHistoryIndex: historyIndex,
+      }));
     };
     img.src = historyItem.imageData;
   };
@@ -207,6 +250,125 @@ export function DoodlerProvider({ children }: { children: ReactNode }) {
       ...prev,
       isPrompting,
     }));
+  };
+
+  // Undo function
+  const undo = () => {
+    setState((prev) => {
+      if (prev.currentHistoryIndex <= 0) return prev; // Can't undo if at the beginning
+
+      const newIndex = prev.currentHistoryIndex - 1;
+      const historyItem = prev.history[newIndex];
+
+      // Load image from history
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = prev.canvasState.width;
+        canvas.height = prev.canvasState.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        setState((current) => ({
+          ...current,
+          canvasState: {
+            ...current.canvasState,
+            imageData,
+          },
+        }));
+      };
+      img.src = historyItem.imageData;
+
+      return {
+        ...prev,
+        currentHistoryIndex: newIndex,
+      };
+    });
+  };
+
+  // Redo function
+  const redo = () => {
+    setState((prev) => {
+      if (prev.currentHistoryIndex >= prev.history.length - 1) return prev; // Can't redo if at the end
+
+      const newIndex = prev.currentHistoryIndex + 1;
+      const historyItem = prev.history[newIndex];
+
+      // Load image from history
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = prev.canvasState.width;
+        canvas.height = prev.canvasState.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        setState((current) => ({
+          ...current,
+          canvasState: {
+            ...current.canvasState,
+            imageData,
+          },
+        }));
+      };
+      img.src = historyItem.imageData;
+
+      return {
+        ...prev,
+        currentHistoryIndex: newIndex,
+      };
+    });
+  };
+
+  // Reset function (go back to initial canvas)
+  const reset = () => {
+    setState((prev) => {
+      if (prev.history.length === 0) return prev;
+
+      const historyItem = prev.history[0];
+
+      // Load first image from history
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = prev.canvasState.width;
+        canvas.height = prev.canvasState.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        setState((current) => ({
+          ...current,
+          canvasState: {
+            ...current.canvasState,
+            imageData,
+          },
+        }));
+      };
+      img.src = historyItem.imageData;
+
+      return {
+        ...prev,
+        currentHistoryIndex: 0,
+      };
+    });
+  };
+
+  // Helper functions to check if undo/redo is possible
+  const canUndo = () => {
+    return state.currentHistoryIndex > 0;
+  };
+
+  const canRedo = () => {
+    return state.currentHistoryIndex < state.history.length - 1;
   };
 
   return (
@@ -221,6 +383,11 @@ export function DoodlerProvider({ children }: { children: ReactNode }) {
         clearHistory: handleClearHistory,
         goToHistoryItem,
         setIsPrompting,
+        undo,
+        redo,
+        reset,
+        canUndo,
+        canRedo,
       }}
     >
       {children}
