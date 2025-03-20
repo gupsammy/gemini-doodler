@@ -18,6 +18,7 @@ import {
   saveHistoryItem,
   getAllHistoryItems,
   clearHistory,
+  deleteHistoryItem as deleteHistoryItemDB,
 } from "./doodler-db";
 
 // Default tool settings
@@ -53,6 +54,7 @@ const DoodlerContext = createContext<{
   updateToolSettings: (settings: Partial<ToolSettings>) => void;
   updateCanvasState: (state: Partial<CanvasState>) => void;
   addHistoryItem: (item: Omit<DoodleHistoryItem, "id" | "timestamp">) => void;
+  deleteHistoryItem: (id: string) => void;
   clearHistory: () => void;
   goToHistoryItem: (id: string) => void;
   setIsPrompting: (isPrompting: boolean) => void;
@@ -62,6 +64,7 @@ const DoodlerContext = createContext<{
   updateToolSettings: () => {},
   updateCanvasState: () => {},
   addHistoryItem: () => {},
+  deleteHistoryItem: () => {},
   clearHistory: () => {},
   goToHistoryItem: () => {},
   setIsPrompting: () => {},
@@ -148,6 +151,21 @@ export function DoodlerProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Delete history item
+  const deleteHistoryItem = async (id: string) => {
+    try {
+      await deleteHistoryItemDB(id);
+
+      // Update state
+      setState((prev) => ({
+        ...prev,
+        history: prev.history.filter((item) => item.id !== id),
+      }));
+    } catch (error) {
+      console.error("Error deleting history item:", error);
+    }
+  };
+
   // Clear history
   const handleClearHistory = async () => {
     try {
@@ -199,6 +217,7 @@ export function DoodlerProvider({ children }: { children: ReactNode }) {
         updateToolSettings,
         updateCanvasState,
         addHistoryItem,
+        deleteHistoryItem,
         clearHistory: handleClearHistory,
         goToHistoryItem,
         setIsPrompting,

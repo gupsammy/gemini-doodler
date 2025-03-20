@@ -174,3 +174,27 @@ export const getPreferences = async (): Promise<Record<
     return null;
   }
 };
+
+/**
+ * Delete a specific history item by ID
+ */
+export const deleteHistoryItem = async (id: string): Promise<void> => {
+  try {
+    const db = await initDB();
+    const transaction = db.transaction(HISTORY_STORE, "readwrite");
+    const store = transaction.objectStore(HISTORY_STORE);
+
+    const request = store.delete(id);
+
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => resolve();
+      request.onerror = (event) => {
+        console.error("Error deleting history item:", event);
+        reject("Failed to delete history item");
+      };
+    });
+  } catch (error) {
+    console.error("Error in deleteHistoryItem:", error);
+    throw error;
+  }
+};
