@@ -3,7 +3,14 @@
 import { useDoodler } from "@/lib/doodler-context";
 import { DoodleHistoryItem } from "@/lib/doodler-types";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, Wand2, Paintbrush, Trash2, TrashIcon } from "lucide-react";
+import {
+  ArrowLeft,
+  Wand2,
+  Paintbrush,
+  Trash2,
+  TrashIcon,
+  History,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function HistorySidebar() {
@@ -39,13 +46,16 @@ export function HistorySidebar() {
   }
 
   return (
-    <div className="absolute right-4 top-1/2 transform -translate-y-1/2 h-[80vh] w-56 bg-background/80 backdrop-blur-sm p-3 rounded-lg border border-border shadow-md overflow-hidden flex flex-col">
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="font-medium text-sm">History</h3>
+    <div className="fixed right-4 top-4 bottom-4 w-64 bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg z-10 flex flex-col">
+      <div className="flex justify-between items-center p-3 border-b border-border">
+        <h3 className="font-medium text-sm flex items-center">
+          <History className="w-4 h-4 mr-2" />
+          History
+        </h3>
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 px-2 text-destructive"
+          className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
           onClick={handleClearAll}
           title="Clear All History"
         >
@@ -53,7 +63,7 @@ export function HistorySidebar() {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto pr-2 space-y-3">
+      <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {state.history
           .slice()
           .reverse()
@@ -61,7 +71,7 @@ export function HistorySidebar() {
             <div
               key={item.id}
               className={cn(
-                "rounded-md overflow-hidden border border-border hover:border-primary cursor-pointer transition-all duration-200 group relative"
+                "rounded-lg overflow-hidden border border-border hover:border-primary cursor-pointer transition-all duration-200 group relative"
               )}
               onClick={() => goToHistoryItem(item.id)}
               title={item.prompt || "User edit"}
@@ -72,8 +82,8 @@ export function HistorySidebar() {
                   alt={item.prompt || "Canvas state"}
                   className="w-full h-auto object-contain"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-2">
-                  <div className="flex items-center text-xs">
+                <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-2">
+                  <div className="flex items-center text-xs bg-background/60 backdrop-blur-sm rounded px-1.5 py-0.5">
                     {item.type === "ai-generated" ? (
                       <Wand2 className="w-3 h-3 mr-1" />
                     ) : (
@@ -89,12 +99,14 @@ export function HistorySidebar() {
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
-                    <ArrowLeft className="w-4 h-4 text-primary" />
+                    <div className="bg-primary/90 text-primary-foreground rounded-full p-1">
+                      <ArrowLeft className="w-3 h-3" />
+                    </div>
                   </div>
                 </div>
               </div>
               {item.prompt && (
-                <div className="text-xs p-1 truncate bg-muted/50">
+                <div className="text-xs p-1.5 truncate bg-muted/50">
                   {item.prompt}
                 </div>
               )}

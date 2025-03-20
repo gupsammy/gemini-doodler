@@ -10,25 +10,19 @@ import { Wand2 } from "lucide-react";
 export default function Home() {
   return (
     <DoodlerProvider>
-      <main className="min-h-screen w-full flex flex-col items-center justify-center bg-background p-4 overflow-hidden relative">
-        <header className="mb-4">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Wand2 className="w-6 h-6 text-primary" />
-            Gemini Doodler
-          </h1>
-          <p className="text-sm text-muted-foreground text-center">
-            Draw and enhance with AI
-          </p>
-        </header>
+      <main className="h-screen w-screen overflow-hidden relative bg-background">
+        {/* Full-screen canvas */}
+        <Canvas />
 
-        {/* Main canvas area */}
-        <div className="relative flex-1 flex items-center justify-center w-full">
-          <Canvas />
-          <ToolBar />
-          <HistorySidebar />
+        {/* Floating logo */}
+        <div className="absolute top-4 left-4 flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-lg p-2 shadow-lg z-10">
+          <Wand2 className="w-5 h-5 text-primary" />
+          <h1 className="text-lg font-bold">Gemini Doodler</h1>
         </div>
 
-        {/* Prompt input at bottom */}
+        {/* All our UI components are self-positioned with fixed/absolute positioning */}
+        <ToolBar />
+        <HistorySidebar />
         <PromptInput />
       </main>
     </DoodlerProvider>

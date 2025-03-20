@@ -120,20 +120,25 @@ export function ToolBar() {
   };
 
   return (
-    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-background/80 backdrop-blur-sm p-2 rounded-lg border border-border shadow-md">
-      <div className="flex flex-col gap-2">
+    <div className="fixed left-4 top-1/2 transform -translate-y-1/2 bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg z-10">
+      <div className="flex flex-col gap-2 p-2">
         {tools.map((tool) => (
           <button
             key={tool.id}
             className={cn(
-              "p-2 rounded-md hover:bg-accent transition-colors duration-200",
+              "p-2 rounded-lg hover:bg-accent transition-colors duration-200 relative group",
               state.currentTool.id === tool.id &&
-                "bg-accent text-accent-foreground"
+                "bg-primary text-primary-foreground"
             )}
             onClick={() => handleToolClick(tool)}
             title={tool.name}
           >
-            {toolIcons[tool.icon]}
+            <div className="flex justify-center items-center">
+              {toolIcons[tool.icon]}
+            </div>
+            <span className="absolute left-full ml-2 py-1 px-2 bg-background border border-border rounded-md shadow-sm text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
+              {tool.name}
+            </span>
           </button>
         ))}
 
@@ -143,34 +148,49 @@ export function ToolBar() {
         {/* History Control Buttons */}
         <button
           className={cn(
-            "p-2 rounded-md hover:bg-accent transition-colors duration-200",
+            "p-2 rounded-lg hover:bg-accent transition-colors duration-200 relative group",
             !canUndo() && "opacity-50 cursor-not-allowed"
           )}
           onClick={undo}
           disabled={!canUndo()}
           title="Undo"
         >
-          {toolIcons.rotateCcw}
+          <div className="flex justify-center items-center">
+            {toolIcons.rotateCcw}
+          </div>
+          <span className="absolute left-full ml-2 py-1 px-2 bg-background border border-border rounded-md shadow-sm text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
+            Undo
+          </span>
         </button>
 
         <button
           className={cn(
-            "p-2 rounded-md hover:bg-accent transition-colors duration-200",
+            "p-2 rounded-lg hover:bg-accent transition-colors duration-200 relative group",
             !canRedo() && "opacity-50 cursor-not-allowed"
           )}
           onClick={redo}
           disabled={!canRedo()}
           title="Redo"
         >
-          {toolIcons.rotateCw}
+          <div className="flex justify-center items-center">
+            {toolIcons.rotateCw}
+          </div>
+          <span className="absolute left-full ml-2 py-1 px-2 bg-background border border-border rounded-md shadow-sm text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
+            Redo
+          </span>
         </button>
 
         <button
-          className="p-2 rounded-md hover:bg-accent transition-colors duration-200"
+          className="p-2 rounded-lg hover:bg-accent transition-colors duration-200 relative group"
           onClick={reset}
-          title="Reset to Initial State"
+          title="Reset Canvas"
         >
-          {toolIcons.refreshCw}
+          <div className="flex justify-center items-center">
+            {toolIcons.refreshCw}
+          </div>
+          <span className="absolute left-full ml-2 py-1 px-2 bg-background border border-border rounded-md shadow-sm text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
+            Reset
+          </span>
         </button>
       </div>
     </div>

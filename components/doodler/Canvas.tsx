@@ -6,38 +6,74 @@ import { useDoodler } from "@/lib/doodler-context";
 export function Canvas() {
   const { state, updateCanvasState, addHistoryItem } = useDoodler();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
 
-  // Setup canvas when component mounts
+  // Setup canvas and adjust to window size
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set canvas dimensions
-    canvas.width = state.canvasState.width;
-    canvas.height = state.canvasState.height;
+    // Function to resize canvas to fill screen
+    const resizeCanvas = () => {
+      // Set canvas to fill window
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
 
-    // Initialize with white background if no image data
-    if (!state.canvasState.imageData) {
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // If we have existing image data, scale it to fit new dimensions
+      if (state.canvasState.imageData) {
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = state.canvasState.width;
+        tempCanvas.height = state.canvasState.height;
+        const tempCtx = tempCanvas.getContext("2d");
+        if (tempCtx) {
+          tempCtx.putImageData(state.canvasState.imageData, 0, 0);
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(tempCanvas, 0, 0, canvas.width, canvas.height);
 
-      // Store initial state
-      updateCanvasState({
-        imageData: ctx.getImageData(0, 0, canvas.width, canvas.height),
-      });
+          // Update canvas state with new dimensions and image data
+          updateCanvasState({
+            width: canvas.width,
+            height: canvas.height,
+            imageData: ctx.getImageData(0, 0, canvas.width, canvas.height),
+          });
+        }
+      } else {
+        // Initialize with white background if no image data
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Add to history
-      const imageData = canvas.toDataURL("image/png");
-      addHistoryItem({
-        imageData,
-        type: "user-edit",
-      });
-    }
+        // Store initial state
+        updateCanvasState({
+          width: canvas.width,
+          height: canvas.height,
+          imageData: ctx.getImageData(0, 0, canvas.width, canvas.height),
+        });
+
+        // Add to history
+        const imageData = canvas.toDataURL("image/png");
+        addHistoryItem({
+          imageData,
+          type: "user-edit",
+        });
+      }
+    };
+
+    // Initial resize
+    resizeCanvas();
+
+    // Add resize event listener
+    window.addEventListener("resize", resizeCanvas);
+
+    return () => {
+      window.removeEventListener("resize", resizeCanvas);
+    };
   }, []);
 
   // Update canvas when imageData changes
@@ -173,10 +209,10 @@ export function Canvas() {
   };
 
   return (
-    <div className="relative flex justify-center items-center">
+    <div ref={containerRef} className="absolute inset-0 w-full h-full">
       <canvas
         ref={canvasRef}
-        className="border border-border bg-white shadow-lg"
+        className="w-full h-full"
         style={{ cursor: state.currentTool.cursor }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}

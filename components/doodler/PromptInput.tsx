@@ -93,33 +93,38 @@ export function PromptInput() {
   };
 
   return (
-    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 w-full max-w-lg px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="flex gap-2 bg-background/80 backdrop-blur-sm p-3 rounded-lg border border-border shadow-md"
-      >
-        <Input
-          type="text"
-          placeholder="Describe your changes (e.g., 'Add a blue sky background')"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          disabled={isLoading}
-          className="flex-1"
-        />
-        <Button type="submit" disabled={!prompt.trim() || isLoading}>
-          {isLoading ? (
-            <span className="flex items-center gap-2">
-              <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-              Processing
-            </span>
-          ) : (
-            <span className="flex items-center gap-2">
-              <Wand2 className="h-4 w-4" />
-              Generate
-            </span>
-          )}
-        </Button>
-      </form>
+    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-2xl px-4">
+      <div className="bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg">
+        <form onSubmit={handleSubmit} className="flex gap-2 p-3">
+          <Input
+            type="text"
+            placeholder="Describe changes (e.g., 'Add a blue sky background')"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            disabled={isLoading}
+            className="flex-1 bg-background/50"
+          />
+          <Button
+            type="submit"
+            disabled={!prompt.trim() || isLoading}
+            className="shrink-0"
+            variant="default"
+            size="sm"
+          >
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                <span className="sr-only sm:not-sr-only">Processing</span>
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Wand2 className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only">Generate</span>
+              </span>
+            )}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }
