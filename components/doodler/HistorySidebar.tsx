@@ -15,13 +15,14 @@ import {
   Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export function HistorySidebar() {
   const { state, goToHistoryItem, deleteHistoryItem, clearHistory } =
     useDoodler();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const isInitialRenderRef = useRef(true);
 
   // Detect mobile viewport
   useEffect(() => {
@@ -38,6 +39,18 @@ export function HistorySidebar() {
     // Cleanup
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  // This effect prevents the history sidebar from auto-expanding when new items are added
+  useEffect(() => {
+    // Skip the first render to avoid auto-expanding on page load
+    if (isInitialRenderRef.current) {
+      isInitialRenderRef.current = false;
+      return;
+    }
+
+    // No auto-expansion logic here - do nothing when history changes
+    // This effectively prevents the sidebar from expanding when drawing happens
+  }, [state.history]);
 
   // Format timestamp to readable time
   const formatTime = (timestamp: number) => {
