@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Brush,
   Eraser,
@@ -13,6 +13,10 @@ import {
   Minus,
   ImagePlus,
   PaintBucket,
+  Hand,
+  Type,
+  Menu,
+  X,
 } from "lucide-react";
 import { useDoodler } from "@/lib/doodler-context";
 import { Tool } from "@/lib/doodler-types";
@@ -83,6 +87,23 @@ const tools: Tool[] = [
     },
   },
   {
+    id: "text",
+    name: "Text",
+    icon: "type",
+    cursor: "text",
+    settings: {
+      strokeStyle: "#000000",
+      fontSize: 16,
+      fontFamily: "Arial",
+    },
+  },
+  {
+    id: "hand",
+    name: "Pan",
+    icon: "hand",
+    cursor: "grab",
+  },
+  {
     id: "image",
     name: "Import Image",
     icon: "imagePlus",
@@ -109,25 +130,49 @@ const toolIcons: Record<string, React.ReactNode> = {
   rotateCw: <RotateCw />,
   refreshCw: <RefreshCw />,
   paintBucket: <PaintBucket />,
+  hand: <Hand />,
+  type: <Type />,
+  menu: <Menu />,
+  x: <X />,
 };
 
 // Group tools for the toolbar layout
 const toolGroups = [
-  ["brush", "eraser", "line", "fill", "rectangle", "ellipse", "image"],
+  [
+    "brush",
+    "eraser",
+    "line",
+    "fill",
+    "rectangle",
+    "ellipse",
+    "type",
+    "hand",
+    "image",
+  ],
   ["clear"],
 ];
 
 export function ToolBar() {
-  const {
-    state,
-    setCurrentTool,
-    updateCanvasState,
-    undo,
-    redo,
-    reset,
-    canUndo,
-    canRedo,
-  } = useDoodler();
+  const { state, setCurrentTool, updateCanvasState } = useDoodler();
+
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Initial check
+    checkMobile();
+
+    // Add resize listener
+    window.addEventListener("resize", checkMobile);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleToolClick = (tool: Tool) => {
     if (tool.id === "clear") {
@@ -183,6 +228,10 @@ export function ToolBar() {
       input.click();
     } else {
       setCurrentTool(tool);
+      // Close mobile menu after selecting a tool
+      if (isMobile) {
+        setMobileMenuOpen(false);
+      }
     }
   };
 
@@ -191,6 +240,57 @@ export function ToolBar() {
     return tools.find((tool) => tool.id === id);
   };
 
+  // Mobile toolbar (vertical layout)
+  if (isMobile) {
+    return (
+      <>
+        {/* Mobile toggle button */}
+        <button
+          className="fixed top-4 right-4 z-20 p-2 bg-background/90 backdrop-blur-sm rounded-lg border border-border shadow-lg"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          {mobileMenuOpen ? toolIcons.x : toolIcons.menu}
+        </button>
+
+        {/* Mobile toolbar */}
+        {mobileMenuOpen && (
+          <div className="fixed top-4 right-16 bottom-32 z-10 bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg p-2 flex flex-col gap-1">
+            {toolGroups.map((group, groupIndex) => (
+              <div key={`group-${groupIndex}`} className="flex flex-col gap-1">
+                {groupIndex > 0 && (
+                  <div className="border-t border-border my-1"></div>
+                )}
+                {group.map((toolId) => {
+                  const tool = findToolById(toolId);
+                  if (!tool) return null;
+
+                  return (
+                    <button
+                      key={toolId}
+                      className={cn(
+                        "p-2 rounded-lg hover:bg-accent transition-colors duration-200 relative group",
+                        state.currentTool.id === toolId &&
+                          "bg-primary text-primary-foreground"
+                      )}
+                      onClick={() => handleToolClick(tool)}
+                      title={tool.name}
+                      aria-label={tool.name}
+                    >
+                      <div className="flex justify-center items-center">
+                        {toolIcons[tool.icon]}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        )}
+      </>
+    );
+  }
+
+  // Desktop toolbar (horizontal layout)
   return (
     <div className="fixed top-4 sm:top-4 md:top-6 left-1/2 transform -translate-x-1/2 bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg z-10">
       <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2 p-1.5 sm:p-2">
@@ -204,79 +304,12 @@ export function ToolBar() {
                 const tool = findToolById(toolId);
                 if (!tool) return null;
 
-                // Handle special case for controls that aren't tools
-                if (toolId === "rotateCcw") {
-                  return (
-                    <button
-                      key={toolId}
-                      className={cn(
-                        "p-1.5 sm:p-2 rounded-lg hover:bg-accent transition-colors duration-200 relative group",
-                        !canUndo() && "opacity-50 cursor-not-allowed"
-                      )}
-                      onClick={undo}
-                      disabled={!canUndo()}
-                      title="Undo"
-                      aria-label="Undo"
-                    >
-                      <div className="flex justify-center items-center">
-                        {toolIcons.rotateCcw}
-                      </div>
-                      <span className="absolute top-full mt-2 py-1 px-2 bg-background border border-border rounded-md shadow-sm text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 hidden sm:block">
-                        Undo
-                      </span>
-                    </button>
-                  );
-                }
-
-                if (toolId === "rotateCw") {
-                  return (
-                    <button
-                      key={toolId}
-                      className={cn(
-                        "p-1.5 sm:p-2 rounded-lg hover:bg-accent transition-colors duration-200 relative group",
-                        !canRedo() && "opacity-50 cursor-not-allowed"
-                      )}
-                      onClick={redo}
-                      disabled={!canRedo()}
-                      title="Redo"
-                      aria-label="Redo"
-                    >
-                      <div className="flex justify-center items-center">
-                        {toolIcons.rotateCw}
-                      </div>
-                      <span className="absolute top-full mt-2 py-1 px-2 bg-background border border-border rounded-md shadow-sm text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 hidden sm:block">
-                        Redo
-                      </span>
-                    </button>
-                  );
-                }
-
-                if (toolId === "refreshCw") {
-                  return (
-                    <button
-                      key={toolId}
-                      className="p-1.5 sm:p-2 rounded-lg hover:bg-accent transition-colors duration-200 relative group"
-                      onClick={reset}
-                      title="Reset Canvas"
-                      aria-label="Reset Canvas"
-                    >
-                      <div className="flex justify-center items-center">
-                        {toolIcons.refreshCw}
-                      </div>
-                      <span className="absolute top-full mt-2 py-1 px-2 bg-background border border-border rounded-md shadow-sm text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 hidden sm:block">
-                        Reset
-                      </span>
-                    </button>
-                  );
-                }
-
-                // Regular tool buttons
                 return (
                   <button
-                    key={tool.id}
+                    key={toolId}
                     className={cn(
                       "p-1.5 sm:p-2 rounded-lg hover:bg-accent transition-colors duration-200 relative group",
-                      state.currentTool.id === tool.id &&
+                      state.currentTool.id === toolId &&
                         "bg-primary text-primary-foreground"
                     )}
                     onClick={() => handleToolClick(tool)}

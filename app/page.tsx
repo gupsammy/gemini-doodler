@@ -11,15 +11,7 @@ import { ToolSettings } from "@/components/doodler/ToolSettings";
 export default function Home() {
   return (
     <DoodlerProvider>
-      <div
-        className="w-screen h-screen overflow-hidden"
-        style={{
-          transform: "scale(0.8)",
-          transformOrigin: "top left",
-          width: "125%" /* 1/0.8 = 1.25 or 125% */,
-          height: "125%",
-        }}
-      >
+      <div className="w-screen h-screen overflow-hidden">
         <main className="w-full h-full overflow-hidden relative bg-background">
           {/* Full-screen canvas */}
           <Canvas />
@@ -30,8 +22,8 @@ export default function Home() {
               width="29"
               height="29"
               viewBox="0 0 72 72"
-              fill="white"
-              className="text-white"
+              fill="black"
+              className="text-black"
               xmlns="http://www.w3.org/2000/svg"
             >
               <g>

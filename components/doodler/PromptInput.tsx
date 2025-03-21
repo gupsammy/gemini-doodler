@@ -1,91 +1,115 @@
 "use client";
 
-import { useState } from "react";
-import { useDoodler } from "@/lib/doodler-context";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect, useRef } from "react";
 import { Wand2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { useDoodler } from "@/lib/doodler-context";
+import { cn } from "@/lib/utils";
 
 export function PromptInput() {
-  const { state, updateCanvasState, addHistoryItem, setIsPrompting } =
-    useDoodler();
+  const { setIsPrompting, addHistoryItem } = useDoodler();
   const [prompt, setPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
 
+    // Initial check
+    checkMobile();
+
+    // Add resize listener
+    window.addEventListener("resize", checkMobile);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Focus the input when clicking on the container
+  const handleContainerClick = () => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  // Handle input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPrompt(e.target.value);
+  };
+
+  // Handle key down (Enter to submit)
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
+  // Submit prompt to generate image
+  const handleSubmit = async () => {
     if (!prompt.trim() || isLoading) return;
 
+    // Set loading state
+    setIsLoading(true);
+    setIsPrompting(true);
+
     try {
-      setIsLoading(true);
-      setIsPrompting(true);
-
-      // Get current canvas data
-      const canvas = document.createElement("canvas");
-      canvas.width = state.canvasState.width;
-      canvas.height = state.canvasState.height;
-      const ctx = canvas.getContext("2d");
-
-      if (!ctx || !state.canvasState.imageData) {
-        throw new Error("Canvas context not available");
+      // Get the current canvas state as an image
+      const canvas = document.querySelector("canvas") as HTMLCanvasElement;
+      if (!canvas) {
+        throw new Error("Canvas not found");
       }
 
-      // Draw current image on temporary canvas
-      ctx.putImageData(state.canvasState.imageData, 0, 0);
       const imageData = canvas.toDataURL("image/png");
 
-      // Send to API
+      // Send request to the Gemini API endpoint
       const response = await fetch("/api/image/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          prompt,
+          prompt: prompt.trim(),
           image: imageData,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to generate image");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to generate image");
       }
 
       const data = await response.json();
 
+      // Update the canvas with the received image
       if (data.image) {
-        // Load generated image
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          canvas.width = state.canvasState.width;
-          canvas.height = state.canvasState.height;
-          const ctx = canvas.getContext("2d");
-
-          if (ctx) {
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          const img = new Image();
+          img.onload = () => {
+            // Clear the canvas and draw the new image
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-            // Update canvas state with new image
-            updateCanvasState({
-              imageData: ctx.getImageData(0, 0, canvas.width, canvas.height),
-            });
-
-            // Add to history
-            addHistoryItem({
-              imageData: data.image,
-              prompt,
-              type: "ai-generated",
-            });
-
-            // Clear prompt
-            setPrompt("");
-          }
-        };
-        img.src = data.image;
+          };
+          img.src = data.image;
+        }
       }
+
+      // Add the generated image to history
+      addHistoryItem({
+        imageData: data.image || imageData,
+        type: "ai-generated",
+        prompt: prompt.trim(),
+      });
+
+      // Reset form
+      setPrompt("");
     } catch (error) {
       console.error("Error generating image:", error);
-      alert("Failed to generate image. Please try again.");
+      alert("Error generating image. Please try again.");
     } finally {
       setIsLoading(false);
       setIsPrompting(false);
@@ -93,37 +117,42 @@ export function PromptInput() {
   };
 
   return (
-    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-10 w-full max-w-2xl px-4">
-      <div className="bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg">
-        <form onSubmit={handleSubmit} className="flex gap-2 p-3">
-          <Input
-            type="text"
-            placeholder="Describe changes (e.g., 'Add a blue sky background')"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            disabled={isLoading}
-            className="flex-1 bg-background/50"
-          />
-          <Button
-            type="submit"
-            disabled={!prompt.trim() || isLoading}
-            className="shrink-0"
-            variant="default"
-            size="sm"
-          >
-            {isLoading ? (
-              <span className="flex items-center gap-2">
-                <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-                <span className="sr-only sm:not-sr-only">Processing</span>
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <Wand2 className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only">Generate</span>
-              </span>
-            )}
-          </Button>
-        </form>
+    <div
+      className={cn(
+        "fixed bottom-4 left-1/2 transform -translate-x-1/2 z-10",
+        isMobile ? "w-[calc(100%-2rem)]" : "w-[600px] max-w-[calc(100%-2rem)]"
+      )}
+      onClick={handleContainerClick}
+    >
+      <div className="relative flex items-center">
+        <input
+          ref={inputRef}
+          type="text"
+          value={prompt}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          placeholder="Describe changes (e.g., 'Add a blue sky background')"
+          className="w-full pl-4 pr-12 py-3 bg-background/90 backdrop-blur-sm border border-border rounded-xl shadow-lg outline-none focus:ring-2 focus:ring-primary"
+          disabled={isLoading}
+        />
+        <button
+          className={cn(
+            "absolute right-3 p-1 rounded-md",
+            isLoading
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:bg-accent transition-colors",
+            !prompt.trim() && "opacity-50 cursor-not-allowed"
+          )}
+          onClick={handleSubmit}
+          disabled={isLoading || !prompt.trim()}
+          aria-label="Generate image from prompt"
+        >
+          {isLoading ? (
+            <div className="w-6 h-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          ) : (
+            <Wand2 className="w-6 h-6 text-primary" />
+          )}
+        </button>
       </div>
     </div>
   );

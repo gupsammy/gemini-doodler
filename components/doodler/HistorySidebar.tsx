@@ -15,12 +15,29 @@ import {
   Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function HistorySidebar() {
   const { state, goToHistoryItem, deleteHistoryItem, clearHistory } =
     useDoodler();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Initial check
+    checkMobile();
+
+    // Add resize listener
+    window.addEventListener("resize", checkMobile);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Format timestamp to readable time
   const formatTime = (timestamp: number) => {
@@ -84,17 +101,27 @@ export function HistorySidebar() {
       {!isExpanded && (
         <button
           onClick={() => setIsExpanded(true)}
-          className="fixed right-4 top-4 bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg z-10 p-3 flex items-center gap-2 hover:bg-accent transition-colors"
+          className={cn(
+            "fixed bg-background/90 backdrop-blur-sm rounded-lg border border-border shadow-lg z-10 p-2 flex items-center gap-1 hover:bg-accent transition-colors",
+            isMobile ? "top-16 right-4" : "top-4 right-4"
+          )}
         >
           <History className="w-4 h-4" />
-          <span className="text-sm">History ({state.history.length})</span>
+          {!isMobile && (
+            <span className="text-sm">History ({state.history.length})</span>
+          )}
           <ChevronLeft className="w-4 h-4" />
         </button>
       )}
 
       {/* Expanded state - full sidebar */}
       {isExpanded && (
-        <div className="fixed right-4 top-4 bottom-4 w-64 bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg z-10 flex flex-col">
+        <div
+          className={cn(
+            "fixed right-4 bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg z-10 flex flex-col",
+            isMobile ? "top-20 bottom-20 w-56" : "top-4 bottom-4 w-64"
+          )}
+        >
           <div className="flex justify-between items-center p-3 border-b border-border">
             <h3 className="font-medium text-sm flex items-center">
               <History className="w-4 h-4 mr-2" />

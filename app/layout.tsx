@@ -1,25 +1,12 @@
-import type { Metadata, Viewport } from "next";
-import { Open_Sans } from "next/font/google";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeProviders } from "@/components/providers";
 
-const openSans = Open_Sans({
-  weight: ["400", "500", "700"],
-  style: ["normal", "italic"],
-  subsets: ["latin"],
-  variable: "--font-open-sans",
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Doodler",
-  description: "Create and enhance drawings with AI",
-};
-
-export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "white" },
-    { media: "(prefers-color-scheme: dark)", color: "black" },
-  ],
+  title: "Gemini Doodler",
+  description: "A simple drawing app powered by Gemini",
 };
 
 export default function RootLayout({
@@ -28,13 +15,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${openSans.className} antialiased bg-white dark:bg-slate-950`}
-        suppressHydrationWarning
-      >
-        <ThemeProviders>{children}</ThemeProviders>
-      </body>
+    <html lang="en">
+      <head>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
+      </head>
+      <body className={inter.className}>{children}</body>
     </html>
   );
 }

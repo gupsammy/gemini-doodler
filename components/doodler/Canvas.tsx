@@ -85,10 +85,9 @@ export function Canvas() {
 
     // Function to resize canvas to fill screen
     const resizeCanvas = () => {
-      // Set canvas to fill window (adjusted for the scaling factor)
-      const scaleFactor = 1.25; // 1/0.8 = 1.25
-      canvas.width = window.innerWidth * scaleFactor;
-      canvas.height = window.innerHeight * scaleFactor;
+      // Set canvas to fill window
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
 
       // Initialize panOffset if it doesn't exist
       if (!state.canvasState.panOffset) {
@@ -196,15 +195,12 @@ export function Canvas() {
   // Get mouse position relative to canvas
   const getMousePosition = (
     canvas: HTMLCanvasElement,
-    event: React.MouseEvent
+    event: React.MouseEvent | React.Touch
   ) => {
     const rect = canvas.getBoundingClientRect();
-    // Apply the inverse scale factor (1/0.8 = 1.25) to get correct position
-    // The scaling wrapper scales to 0.8, so we need to multiply by 1.25 to get actual position
-    const scaleAdjustment = 1.25;
     return {
-      x: (event.clientX - rect.left) * scaleAdjustment,
-      y: (event.clientY - rect.top) * scaleAdjustment,
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
     };
   };
 
@@ -383,6 +379,68 @@ export function Canvas() {
     }
   };
 
+  // Handle touch start
+  const handleTouchStart = (event: React.TouchEvent) => {
+    event.preventDefault(); // Prevent scrolling while drawing
+    const canvas = canvasRef.current;
+    if (!canvas || !event.touches[0]) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const touch = event.touches[0];
+    const position = getMousePosition(canvas, touch);
+    setStartPosition(position);
+    setHasMovedSinceDown(false);
+
+    // Same logic as mouse down but for touch
+    if (state.currentTool.id === "hand") {
+      setIsPanning(true);
+      setLastPanPosition(position);
+    } else if (state.currentTool.id === "text") {
+      const offsetX = state.canvasState.panOffset?.x || 0;
+      const offsetY = state.canvasState.panOffset?.y || 0;
+
+      setTextInputActive(true, {
+        x: position.x - offsetX,
+        y: position.y - offsetY,
+      });
+      setTextInputValue("");
+    } else if (state.currentTool.id === "fill") {
+      ctx.fillStyle = state.toolSettings.strokeStyle || "#000000";
+
+      floodFill(
+        ctx,
+        Math.round(position.x),
+        Math.round(position.y),
+        state.toolSettings.strokeStyle || "#000000"
+      );
+
+      updateCanvasState({
+        imageData: ctx.getImageData(0, 0, canvas.width, canvas.height),
+      });
+
+      const imageData = canvas.toDataURL("image/png");
+      addHistoryItem({
+        imageData,
+        type: "user-edit",
+      });
+    } else {
+      setIsDrawing(true);
+
+      ctx.lineWidth = state.toolSettings.lineWidth || 1;
+      ctx.strokeStyle = state.toolSettings.strokeStyle || "#000000";
+      ctx.fillStyle = state.toolSettings.fillStyle || "transparent";
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      if (["brush", "eraser"].includes(state.currentTool.id)) {
+        ctx.beginPath();
+        ctx.moveTo(position.x, position.y);
+      }
+    }
+  };
+
   // Handle mouse move
   const handleMouseMove = (event: React.MouseEvent) => {
     const canvas = canvasRef.current;
@@ -482,6 +540,98 @@ export function Canvas() {
     }
   };
 
+  // Handle touch move
+  const handleTouchMove = (event: React.TouchEvent) => {
+    event.preventDefault(); // Prevent scrolling
+    const canvas = canvasRef.current;
+    if (!canvas || !event.touches[0]) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const touch = event.touches[0];
+    const position = getMousePosition(canvas, touch);
+
+    if (isPanning && state.currentTool.id === "hand") {
+      const dx = position.x - lastPanPosition.x;
+      const dy = position.y - lastPanPosition.y;
+
+      setLastPanPosition(position);
+
+      const currentOffset = state.canvasState.panOffset || { x: 0, y: 0 };
+      updateCanvasState({
+        panOffset: {
+          x: currentOffset.x + dx,
+          y: currentOffset.y + dy,
+        },
+      });
+
+      if (state.canvasState.imageData) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+        ctx.translate(currentOffset.x + dx, currentOffset.y + dy);
+        ctx.putImageData(state.canvasState.imageData, 0, 0);
+        ctx.restore();
+      }
+    } else if (isDrawing) {
+      if (position.x !== startPosition.x || position.y !== startPosition.y) {
+        setHasMovedSinceDown(true);
+      }
+
+      if (["brush", "eraser"].includes(state.currentTool.id)) {
+        ctx.lineTo(position.x, position.y);
+        ctx.stroke();
+      } else if (state.currentTool.id === "line") {
+        if (state.canvasState.imageData) {
+          ctx.putImageData(state.canvasState.imageData, 0, 0);
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(startPosition.x, startPosition.y);
+        ctx.lineTo(position.x, position.y);
+        ctx.stroke();
+      } else if (state.currentTool.id === "rectangle") {
+        if (state.canvasState.imageData) {
+          ctx.putImageData(state.canvasState.imageData, 0, 0);
+        }
+
+        const width = position.x - startPosition.x;
+        const height = position.y - startPosition.y;
+
+        ctx.beginPath();
+        ctx.rect(startPosition.x, startPosition.y, width, height);
+        ctx.stroke();
+        if (state.toolSettings.fillStyle !== "transparent") {
+          ctx.fill();
+        }
+      } else if (state.currentTool.id === "ellipse") {
+        if (state.canvasState.imageData) {
+          ctx.putImageData(state.canvasState.imageData, 0, 0);
+        }
+
+        const width = position.x - startPosition.x;
+        const height = position.y - startPosition.y;
+        const centerX = startPosition.x + width / 2;
+        const centerY = startPosition.y + height / 2;
+
+        ctx.beginPath();
+        ctx.ellipse(
+          centerX,
+          centerY,
+          Math.abs(width / 2),
+          Math.abs(height / 2),
+          0,
+          0,
+          2 * Math.PI
+        );
+        ctx.stroke();
+        if (state.toolSettings.fillStyle !== "transparent") {
+          ctx.fill();
+        }
+      }
+    }
+  };
+
   // Handle mouse up
   const handleMouseUp = () => {
     const canvas = canvasRef.current;
@@ -515,10 +665,47 @@ export function Canvas() {
     }
   };
 
+  // Handle touch end
+  const handleTouchEnd = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    if (isPanning) {
+      setIsPanning(false);
+    }
+
+    if (isDrawing) {
+      setIsDrawing(false);
+
+      if (hasMovedSinceDown) {
+        updateCanvasState({
+          imageData: ctx.getImageData(0, 0, canvas.width, canvas.height),
+        });
+
+        const imageData = canvas.toDataURL("image/png");
+        addHistoryItem({
+          imageData,
+          type: "user-edit",
+        });
+      }
+    }
+  };
+
   // Handle mouse leave
   const handleMouseLeave = () => {
+    // This helps prevent issues when mouse leaves canvas area
     if (isDrawing || isPanning) {
       handleMouseUp();
+    }
+  };
+
+  // Handle touch cancel
+  const handleTouchCancel = () => {
+    if (isDrawing || isPanning) {
+      handleTouchEnd();
     }
   };
 
@@ -574,30 +761,31 @@ export function Canvas() {
   };
 
   return (
-    <div
-      ref={containerRef}
-      className="absolute inset-0 w-full h-full overflow-hidden"
-    >
+    <div ref={containerRef} className="w-full h-full relative">
       <canvas
         ref={canvasRef}
-        className="w-full h-full"
-        style={{ cursor: state.currentTool.cursor }}
+        className="w-full h-full relative touch-none"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchCancel}
+        style={{
+          cursor:
+            state.currentTool.id === "hand"
+              ? isPanning
+                ? "grabbing"
+                : "grab"
+              : state.currentTool.cursor || "default",
+        }}
       />
       <textarea
         ref={textInputRef}
-        className="absolute bg-transparent border border-primary p-1 outline-none resize-none"
-        style={{
-          display: "none",
-          minWidth: "100px",
-          minHeight: "1.5rem",
-          fontSize: `${state.toolSettings.fontSize || 16}px`,
-          fontFamily: state.toolSettings.fontFamily || "Arial",
-          color: state.toolSettings.strokeStyle || "#000000",
-        }}
+        className="absolute z-20 px-2 py-1 outline-none min-w-[100px] min-h-[50px] bg-transparent border border-primary resize-none"
+        style={{ display: "none" }}
         onChange={handleTextInputChange}
         onBlur={handleTextInputBlur}
       />

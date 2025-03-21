@@ -1,0 +1,58 @@
+@media (max-width: 768px) {
+  /* History icon in top right */
+  .history-toggle {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 100;
+  }
+
+  /* Toolbar hamburger centered on right edge */
+  .toolbar-toggle {
+    position: fixed;
+    top: 50vh;
+    right: 10px;
+    transform: translateY(-50%);
+    z-index: 100;
+  }
+
+  /* Toolbar expands up and down from center */
+  .toolbar.open .toolbar-content {
+    position: fixed;
+    right: 50px; /* Space from the right edge */
+    top: 50%;
+    transform: translateY(-50%);
+    max-height: 80vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Make undo/redo container smaller */
+  .undo-redo-container {
+    display: flex;
+    gap: 5px;
+    padding: 5px;
+  }
+
+  .undo-redo-container button {
+    width: 30px;
+    height: 30px;
+    padding: 5px;
+  }
+
+  /* Smaller Doodler container */
+  .doodler-container {
+    width: 90%;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+
+  /* Position tool settings near undo/redo */
+  .tool-settings {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    z-index: 100;
+  }
+}
