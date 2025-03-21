@@ -6,14 +6,11 @@ import {
   Eraser,
   Square,
   Circle,
-  Pipette,
   Trash2,
   RotateCcw,
   RotateCw,
   RefreshCw,
-  Hand,
   Minus,
-  Type,
   ImagePlus,
 } from "lucide-react";
 import { useDoodler } from "@/lib/doodler-context";
@@ -183,14 +180,14 @@ export function ToolBar() {
   };
 
   return (
-    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg z-10">
-      <div className="flex items-center gap-2 p-2">
+    <div className="fixed top-4 sm:top-4 md:top-6 left-1/2 transform -translate-x-1/2 bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg z-10">
+      <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2 p-1.5 sm:p-2">
         {toolGroups.map((group, groupIndex) => (
           <React.Fragment key={`group-${groupIndex}`}>
             {groupIndex > 0 && (
-              <div className="h-8 border-r border-border mx-1"></div>
+              <div className="h-8 border-r border-border mx-0.5 sm:mx-1"></div>
             )}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               {group.map((toolId) => {
                 const tool = findToolById(toolId);
                 if (!tool) return null;
@@ -201,17 +198,18 @@ export function ToolBar() {
                     <button
                       key={toolId}
                       className={cn(
-                        "p-2 rounded-lg hover:bg-accent transition-colors duration-200 relative group",
+                        "p-1.5 sm:p-2 rounded-lg hover:bg-accent transition-colors duration-200 relative group",
                         !canUndo() && "opacity-50 cursor-not-allowed"
                       )}
                       onClick={undo}
                       disabled={!canUndo()}
                       title="Undo"
+                      aria-label="Undo"
                     >
                       <div className="flex justify-center items-center">
                         {toolIcons.rotateCcw}
                       </div>
-                      <span className="absolute top-full mt-2 py-1 px-2 bg-background border border-border rounded-md shadow-sm text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
+                      <span className="absolute top-full mt-2 py-1 px-2 bg-background border border-border rounded-md shadow-sm text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 hidden sm:block">
                         Undo
                       </span>
                     </button>
@@ -223,17 +221,18 @@ export function ToolBar() {
                     <button
                       key={toolId}
                       className={cn(
-                        "p-2 rounded-lg hover:bg-accent transition-colors duration-200 relative group",
+                        "p-1.5 sm:p-2 rounded-lg hover:bg-accent transition-colors duration-200 relative group",
                         !canRedo() && "opacity-50 cursor-not-allowed"
                       )}
                       onClick={redo}
                       disabled={!canRedo()}
                       title="Redo"
+                      aria-label="Redo"
                     >
                       <div className="flex justify-center items-center">
                         {toolIcons.rotateCw}
                       </div>
-                      <span className="absolute top-full mt-2 py-1 px-2 bg-background border border-border rounded-md shadow-sm text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
+                      <span className="absolute top-full mt-2 py-1 px-2 bg-background border border-border rounded-md shadow-sm text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 hidden sm:block">
                         Redo
                       </span>
                     </button>
@@ -244,14 +243,15 @@ export function ToolBar() {
                   return (
                     <button
                       key={toolId}
-                      className="p-2 rounded-lg hover:bg-accent transition-colors duration-200 relative group"
+                      className="p-1.5 sm:p-2 rounded-lg hover:bg-accent transition-colors duration-200 relative group"
                       onClick={reset}
                       title="Reset Canvas"
+                      aria-label="Reset Canvas"
                     >
                       <div className="flex justify-center items-center">
                         {toolIcons.refreshCw}
                       </div>
-                      <span className="absolute top-full mt-2 py-1 px-2 bg-background border border-border rounded-md shadow-sm text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
+                      <span className="absolute top-full mt-2 py-1 px-2 bg-background border border-border rounded-md shadow-sm text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 hidden sm:block">
                         Reset
                       </span>
                     </button>
@@ -263,17 +263,18 @@ export function ToolBar() {
                   <button
                     key={tool.id}
                     className={cn(
-                      "p-2 rounded-lg hover:bg-accent transition-colors duration-200 relative group",
+                      "p-1.5 sm:p-2 rounded-lg hover:bg-accent transition-colors duration-200 relative group",
                       state.currentTool.id === tool.id &&
                         "bg-primary text-primary-foreground"
                     )}
                     onClick={() => handleToolClick(tool)}
                     title={tool.name}
+                    aria-label={tool.name}
                   >
                     <div className="flex justify-center items-center">
                       {toolIcons[tool.icon]}
                     </div>
-                    <span className="absolute top-full mt-2 py-1 px-2 bg-background border border-border rounded-md shadow-sm text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
+                    <span className="absolute top-full mt-2 py-1 px-2 bg-background border border-border rounded-md shadow-sm text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 hidden sm:block">
                       {tool.name}
                     </span>
                   </button>

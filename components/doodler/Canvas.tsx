@@ -33,9 +33,10 @@ export function Canvas() {
 
     // Function to resize canvas to fill screen
     const resizeCanvas = () => {
-      // Set canvas to fill window
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      // Set canvas to fill window (adjusted for the scaling factor)
+      const scaleFactor = 1.25; // 1/0.8 = 1.25
+      canvas.width = window.innerWidth * scaleFactor;
+      canvas.height = window.innerHeight * scaleFactor;
 
       // Initialize panOffset if it doesn't exist
       if (!state.canvasState.panOffset) {
@@ -146,9 +147,12 @@ export function Canvas() {
     event: React.MouseEvent
   ) => {
     const rect = canvas.getBoundingClientRect();
+    // Apply the inverse scale factor (1/0.8 = 1.25) to get correct position
+    // The scaling wrapper scales to 0.8, so we need to multiply by 1.25 to get actual position
+    const scaleAdjustment = 1.25;
     return {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
+      x: (event.clientX - rect.left) * scaleAdjustment,
+      y: (event.clientY - rect.top) * scaleAdjustment,
     };
   };
 
@@ -390,7 +394,10 @@ export function Canvas() {
   };
 
   return (
-    <div ref={containerRef} className="absolute inset-0 w-full h-full">
+    <div
+      ref={containerRef}
+      className="absolute inset-0 w-full h-full overflow-hidden"
+    >
       <canvas
         ref={canvasRef}
         className="w-full h-full"

@@ -119,14 +119,23 @@ export function DoodlerProvider({ children }: { children: ReactNode }) {
 
   // Set current tool
   const setCurrentTool = (tool: Tool) => {
-    setState((prev) => ({
-      ...prev,
-      currentTool: tool,
-      toolSettings: {
-        ...prev.toolSettings,
-        ...tool.settings,
-      },
-    }));
+    setState((prev) => {
+      // Preserve the user's color setting when switching tools
+      const preservedSettings = { strokeStyle: prev.toolSettings.strokeStyle };
+
+      return {
+        ...prev,
+        currentTool: tool,
+        toolSettings: {
+          ...prev.toolSettings,
+          ...tool.settings,
+          // Only preserve the color when the tool can use color
+          ...(["brush", "line", "rectangle", "ellipse"].includes(tool.id)
+            ? preservedSettings
+            : {}),
+        },
+      };
+    });
   };
 
   // Update tool settings
