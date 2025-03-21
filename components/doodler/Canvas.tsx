@@ -9,6 +9,7 @@ export function Canvas() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
+  const initialRenderRef = useRef(true);
 
   // Setup canvas and adjust to window size
   useEffect(() => {
@@ -56,12 +57,17 @@ export function Canvas() {
           imageData: ctx.getImageData(0, 0, canvas.width, canvas.height),
         });
 
-        // Add to history
-        const imageData = canvas.toDataURL("image/png");
-        addHistoryItem({
-          imageData,
-          type: "user-edit",
-        });
+        // Only add to history if this is not the initial render on page load
+        if (!initialRenderRef.current) {
+          const imageData = canvas.toDataURL("image/png");
+          addHistoryItem({
+            imageData,
+            type: "user-edit",
+          });
+        }
+
+        // Set the initial render flag to false after first render
+        initialRenderRef.current = false;
       }
     };
 
