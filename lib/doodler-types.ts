@@ -3,6 +3,8 @@ export interface ToolSettings {
   lineWidth?: number;
   strokeStyle?: string;
   fillStyle?: string;
+  fontSize?: number;
+  fontFamily?: string;
 }
 
 export interface Tool {
@@ -18,6 +20,8 @@ export interface CanvasState {
   width: number;
   height: number;
   imageData: ImageData | null;
+  panOffset?: { x: number; y: number }; // Added for hand tool panning
+  scale?: number; // Added for zoom functionality
 }
 
 // History item for tracking changes
@@ -37,6 +41,9 @@ export interface AppState {
   history: DoodleHistoryItem[];
   currentHistoryIndex: number;
   isPrompting: boolean;
+  textInputActive?: boolean; // Flag to indicate if text input is active
+  textInputPosition?: { x: number; y: number }; // Position for text input
+  textInputValue?: string; // Current text input value
 }
 
 // Gemini API request/response types

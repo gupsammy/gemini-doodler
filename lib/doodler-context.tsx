@@ -42,10 +42,15 @@ const initialState: AppState = {
     width: 800,
     height: 600,
     imageData: null,
+    panOffset: { x: 0, y: 0 },
+    scale: 1,
   },
   history: [],
   currentHistoryIndex: -1,
   isPrompting: false,
+  textInputActive: false,
+  textInputPosition: undefined,
+  textInputValue: "",
 };
 
 // Create context
@@ -59,6 +64,11 @@ const DoodlerContext = createContext<{
   clearHistory: () => void;
   goToHistoryItem: (id: string) => void;
   setIsPrompting: (isPrompting: boolean) => void;
+  setTextInputActive: (
+    active: boolean,
+    position?: { x: number; y: number }
+  ) => void;
+  setTextInputValue: (value: string) => void;
   undo: () => void;
   redo: () => void;
   reset: () => void;
@@ -74,6 +84,8 @@ const DoodlerContext = createContext<{
   clearHistory: () => {},
   goToHistoryItem: () => {},
   setIsPrompting: () => {},
+  setTextInputActive: () => {},
+  setTextInputValue: () => {},
   undo: () => {},
   redo: () => {},
   reset: () => {},
@@ -252,6 +264,26 @@ export function DoodlerProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  // Set text input active
+  const setTextInputActive = (
+    active: boolean,
+    position?: { x: number; y: number }
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      textInputActive: active,
+      textInputPosition: position || prev.textInputPosition,
+    }));
+  };
+
+  // Set text input value
+  const setTextInputValue = (value: string) => {
+    setState((prev) => ({
+      ...prev,
+      textInputValue: value,
+    }));
+  };
+
   // Undo function
   const undo = () => {
     setState((prev) => {
@@ -383,6 +415,8 @@ export function DoodlerProvider({ children }: { children: ReactNode }) {
         clearHistory: handleClearHistory,
         goToHistoryItem,
         setIsPrompting,
+        setTextInputActive,
+        setTextInputValue,
         undo,
         redo,
         reset,

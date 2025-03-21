@@ -3,6 +3,7 @@
 import { DoodlerProvider } from "@/lib/doodler-context";
 import { Canvas } from "@/components/doodler/Canvas";
 import { ToolBar } from "@/components/doodler/ToolBar";
+import { UndoRedoControls } from "@/components/doodler/UndoRedoControls";
 import { PromptInput } from "@/components/doodler/PromptInput";
 import { HistorySidebar } from "@/components/doodler/HistorySidebar";
 import { Wand2 } from "lucide-react";
@@ -22,6 +23,7 @@ export default function Home() {
 
         {/* All our UI components are self-positioned with fixed/absolute positioning */}
         <ToolBar />
+        <UndoRedoControls />
         <HistorySidebar />
         <PromptInput />
       </main>
