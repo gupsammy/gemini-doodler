@@ -40,7 +40,7 @@ const initialState: AppState = {
   toolSettings: defaultToolSettings,
   canvasState: {
     width: 1024,
-    height: 768,
+    height: 1024,
     imageData: null,
     panOffset: { x: 0, y: 0 },
     scale: 1,

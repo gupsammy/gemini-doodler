@@ -92,25 +92,25 @@ export function Canvas() {
 
     // Function to resize canvas to fill screen
     const resizeCanvas = () => {
-      // Calculate canvas dimensions with max size of 1024x1024
+      // Calculate canvas dimensions with max size 1024 for the longer edge
       const maxDimension = 1024;
-      let canvasWidth = Math.min(window.innerWidth, maxDimension);
-      let canvasHeight = Math.min(window.innerHeight, maxDimension);
 
-      // Maintain aspect ratio (if needed)
-      if (window.innerWidth > window.innerHeight) {
-        // Landscape orientation
-        const aspectRatio = window.innerWidth / window.innerHeight;
-        canvasHeight = Math.min(canvasWidth / aspectRatio, maxDimension);
+      // Get the viewport aspect ratio
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const aspectRatio = viewportWidth / viewportHeight;
+
+      let canvasWidth, canvasHeight;
+
+      if (viewportWidth > viewportHeight) {
+        // Landscape orientation - width is the longer edge
+        canvasWidth = maxDimension;
+        canvasHeight = Math.round(maxDimension / aspectRatio);
       } else {
-        // Portrait orientation
-        const aspectRatio = window.innerHeight / window.innerWidth;
-        canvasWidth = Math.min(canvasHeight / aspectRatio, maxDimension);
+        // Portrait orientation - height is the longer edge
+        canvasHeight = maxDimension;
+        canvasWidth = Math.round(maxDimension * aspectRatio);
       }
-
-      // Ensure we don't exceed max dimensions
-      canvasWidth = Math.min(canvasWidth, maxDimension);
-      canvasHeight = Math.min(canvasHeight, maxDimension);
 
       // Round dimensions to integers
       canvas.width = Math.round(canvasWidth);

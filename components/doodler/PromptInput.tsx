@@ -70,21 +70,16 @@ export function PromptInput() {
       // Determine dimensions while maintaining aspect ratio
       let width = canvas.width;
       let height = canvas.height;
+      const aspectRatio = width / height;
 
       if (width > height) {
-        // Landscape orientation
-        if (width > maxDimension) {
-          const aspectRatio = width / height;
-          width = maxDimension;
-          height = width / aspectRatio;
-        }
+        // Landscape orientation - width is the longer edge
+        width = maxDimension;
+        height = Math.round(maxDimension / aspectRatio);
       } else {
-        // Portrait or square orientation
-        if (height > maxDimension) {
-          const aspectRatio = height / width;
-          height = maxDimension;
-          width = height / aspectRatio;
-        }
+        // Portrait orientation - height is the longer edge
+        height = maxDimension;
+        width = Math.round(maxDimension * aspectRatio);
       }
 
       // Set dimensions on temp canvas
