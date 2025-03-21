@@ -43,7 +43,7 @@ export function ToolSettings() {
   ].includes(state.currentTool.id);
 
   // Current tool uses a color (not eraser)
-  const usesColor = ["brush", "line", "rectangle", "ellipse"].includes(
+  const usesColor = ["brush", "line", "rectangle", "ellipse", "fill"].includes(
     state.currentTool.id
   );
 

@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Minus,
   ImagePlus,
+  PaintBucket,
 } from "lucide-react";
 import { useDoodler } from "@/lib/doodler-context";
 import { Tool } from "@/lib/doodler-types";
@@ -47,6 +48,16 @@ const tools: Tool[] = [
     settings: {
       lineWidth: 2,
       strokeStyle: "#000000",
+    },
+  },
+  {
+    id: "fill",
+    name: "Fill",
+    icon: "paintBucket",
+    cursor: "crosshair",
+    settings: {
+      strokeStyle: "#000000",
+      fillStyle: "#000000",
     },
   },
   {
@@ -97,11 +108,12 @@ const toolIcons: Record<string, React.ReactNode> = {
   rotateCcw: <RotateCcw />,
   rotateCw: <RotateCw />,
   refreshCw: <RefreshCw />,
+  paintBucket: <PaintBucket />,
 };
 
 // Group tools for the toolbar layout
 const toolGroups = [
-  ["brush", "eraser", "line", "rectangle", "ellipse", "image"],
+  ["brush", "eraser", "line", "fill", "rectangle", "ellipse", "image"],
   ["clear"],
 ];
 

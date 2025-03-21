@@ -12,6 +12,7 @@ import {
   History,
   ChevronRight,
   ChevronLeft,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -35,6 +36,34 @@ export function HistorySidebar() {
     if (window.confirm("Are you sure you want to delete this item?")) {
       deleteHistoryItem(id);
     }
+  };
+
+  // Handle download image
+  const handleDownloadImage = (
+    e: React.MouseEvent,
+    item: DoodleHistoryItem
+  ) => {
+    e.stopPropagation(); // Prevent triggering the parent onClick
+
+    // Create a download link
+    const link = document.createElement("a");
+    link.href = item.imageData;
+
+    // Create filename based on timestamp and type
+    const timestamp = new Date(item.timestamp)
+      .toISOString()
+      .replace(/[:.]/g, "-");
+    const type = item.type === "ai-generated" ? "ai" : "user";
+    const promptText = item.prompt
+      ? `-${item.prompt.substring(0, 20).replace(/[^a-z0-9]/gi, "-")}`
+      : "";
+
+    link.download = `doodle-${type}-${timestamp}${promptText}.png`;
+
+    // Append to body, click and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Handle clear all history
@@ -128,6 +157,13 @@ export function HistorySidebar() {
                           title="Delete"
                         >
                           <Trash2 className="w-3 h-3" />
+                        </button>
+                        <button
+                          className="opacity-0 group-hover:opacity-100 transition-opacity bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1"
+                          onClick={(e) => handleDownloadImage(e, item)}
+                          title="Download image"
+                        >
+                          <Download className="w-3 h-3" />
                         </button>
                         <div className="bg-primary/90 text-primary-foreground rounded-full p-1">
                           <ArrowLeft className="w-3 h-3" />

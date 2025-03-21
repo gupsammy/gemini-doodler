@@ -11,8 +11,8 @@ const openSans = Open_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Image Editor",
-  description: "Edit images using Google DeepMind Gemini 2.0",
+  title: "Doodler",
+  description: "Create and enhance drawings with AI",
 };
 
 export const viewport: Viewport = {

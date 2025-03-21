@@ -130,7 +130,9 @@ export function DoodlerProvider({ children }: { children: ReactNode }) {
           ...prev.toolSettings,
           ...tool.settings,
           // Only preserve the color when the tool can use color
-          ...(["brush", "line", "rectangle", "ellipse"].includes(tool.id)
+          ...(["brush", "line", "rectangle", "ellipse", "fill"].includes(
+            tool.id
+          )
             ? preservedSettings
             : {}),
         },
