@@ -20,6 +20,7 @@ export function Canvas() {
   const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
   const [lastPanPosition, setLastPanPosition] = useState({ x: 0, y: 0 });
   const initialRenderRef = useRef(true);
+  const [hasMovedSinceDown, setHasMovedSinceDown] = useState(false);
 
   // Setup canvas and adjust to window size
   useEffect(() => {
@@ -161,6 +162,8 @@ export function Canvas() {
 
     const position = getMousePosition(canvas, event);
     setStartPosition(position);
+    // Reset move tracking state
+    setHasMovedSinceDown(false);
 
     // Different behavior based on current tool
     if (state.currentTool.id === "hand") {
@@ -232,6 +235,11 @@ export function Canvas() {
         ctx.restore();
       }
     } else if (isDrawing) {
+      // Track that drawing actually occurred
+      if (position.x !== startPosition.x || position.y !== startPosition.y) {
+        setHasMovedSinceDown(true);
+      }
+
       if (["brush", "eraser"].includes(state.currentTool.id)) {
         // Continuous drawing
         ctx.lineTo(position.x, position.y);
@@ -306,17 +314,20 @@ export function Canvas() {
     if (isDrawing) {
       setIsDrawing(false);
 
-      // Store current image data
-      updateCanvasState({
-        imageData: ctx.getImageData(0, 0, canvas.width, canvas.height),
-      });
+      // Only add to history if actual drawing occurred
+      if (hasMovedSinceDown) {
+        // Store current image data
+        updateCanvasState({
+          imageData: ctx.getImageData(0, 0, canvas.width, canvas.height),
+        });
 
-      // Add to history
-      const imageData = canvas.toDataURL("image/png");
-      addHistoryItem({
-        imageData,
-        type: "user-edit",
-      });
+        // Add to history
+        const imageData = canvas.toDataURL("image/png");
+        addHistoryItem({
+          imageData,
+          type: "user-edit",
+        });
+      }
     }
   };
 
