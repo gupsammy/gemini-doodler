@@ -3,6 +3,13 @@
 import { useRef, useEffect, useState } from "react";
 import { useDoodler } from "@/lib/doodler-context";
 
+// Add type declaration for the window object
+declare global {
+  interface Window {
+    resizeTriggeredRender?: boolean;
+  }
+}
+
 export function Canvas() {
   const {
     state,
@@ -136,7 +143,8 @@ export function Canvas() {
         });
 
         // Only add to history if this is not the initial render on page load
-        if (!initialRenderRef.current) {
+        // and if this is not a resize event
+        if (!initialRenderRef.current && !window.resizeTriggeredRender) {
           const imageData = canvas.toDataURL("image/png");
           addHistoryItem({
             imageData,
@@ -153,10 +161,19 @@ export function Canvas() {
     resizeCanvas();
 
     // Add resize event listener
-    window.addEventListener("resize", resizeCanvas);
+    const handleResize = () => {
+      window.resizeTriggeredRender = true;
+      resizeCanvas();
+      // Reset the flag after a short delay
+      setTimeout(() => {
+        window.resizeTriggeredRender = false;
+      }, 100);
+    };
+
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener("resize", resizeCanvas);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
