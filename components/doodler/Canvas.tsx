@@ -122,6 +122,9 @@ export function Canvas() {
       canvas.style.top = "50%";
       canvas.style.left = "50%";
       canvas.style.transform = "translate(-50%, -50%)";
+      canvas.style.border = "1px solid rgba(0, 0, 0, 0.1)";
+      canvas.style.boxShadow = "0 0 20px rgba(0, 0, 0, 0.05)";
+      canvas.style.borderRadius = "4px";
 
       // Initialize panOffset if it doesn't exist
       if (!state.canvasState.panOffset) {

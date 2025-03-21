@@ -181,7 +181,7 @@ export function PromptInput() {
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder="Describe Edits (e.g., 'Add some hair')"
-          className="w-full pl-4 pr-12 py-3 bg-background/90 backdrop-blur-sm border border-border rounded-xl shadow-lg outline-none focus:ring-2 focus:ring-primary"
+          className="w-full pl-4 pr-12 py-3 bg-background/90 backdrop-blur-sm border-2 border-primary/20 rounded-xl shadow-lg shadow-primary/10 outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200"
           disabled={isLoading}
         />
         <button
