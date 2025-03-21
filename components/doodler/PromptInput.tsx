@@ -63,7 +63,42 @@ export function PromptInput() {
         throw new Error("Canvas not found");
       }
 
-      const imageData = canvas.toDataURL("image/png");
+      // Create a temporary canvas for resizing
+      const tempCanvas = document.createElement("canvas");
+      const maxDimension = 1024;
+
+      // Determine dimensions while maintaining aspect ratio
+      let width = canvas.width;
+      let height = canvas.height;
+
+      if (width > height) {
+        // Landscape orientation
+        if (width > maxDimension) {
+          const aspectRatio = width / height;
+          width = maxDimension;
+          height = width / aspectRatio;
+        }
+      } else {
+        // Portrait or square orientation
+        if (height > maxDimension) {
+          const aspectRatio = height / width;
+          height = maxDimension;
+          width = height / aspectRatio;
+        }
+      }
+
+      // Set dimensions on temp canvas
+      tempCanvas.width = Math.round(width);
+      tempCanvas.height = Math.round(height);
+
+      // Draw the original canvas onto the temp canvas (resized)
+      const tempCtx = tempCanvas.getContext("2d");
+      if (tempCtx) {
+        tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+      }
+
+      // Get the resized image data
+      const imageData = tempCanvas.toDataURL("image/png");
 
       // Send request to the Gemini API endpoint
       const response = await fetch("/api/image/generate", {
@@ -90,9 +125,23 @@ export function PromptInput() {
         if (ctx) {
           const img = new Image();
           img.onload = () => {
-            // Clear the canvas and draw the new image
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            // Center and draw the image on the canvas
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Calculate scaling and position to center the image
+            const scale = Math.max(
+              canvas.width / img.width,
+              canvas.height / img.height
+            );
+
+            const scaledWidth = img.width * scale;
+            const scaledHeight = img.height * scale;
+            const x = (canvas.width - scaledWidth) / 2;
+            const y = (canvas.height - scaledHeight) / 2;
+
+            // Draw the image centered and scaled to fill the canvas
+            ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
           };
           img.src = data.image;
         }
@@ -131,7 +180,7 @@ export function PromptInput() {
           value={prompt}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          placeholder="Describe changes (e.g., 'Add a blue sky background')"
+          placeholder="Describe Edits (e.g., 'Add some hair')"
           className="w-full pl-4 pr-12 py-3 bg-background/90 backdrop-blur-sm border border-border rounded-xl shadow-lg outline-none focus:ring-2 focus:ring-primary"
           disabled={isLoading}
         />
@@ -150,7 +199,7 @@ export function PromptInput() {
           {isLoading ? (
             <div className="w-6 h-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
           ) : (
-            <Wand2 className="w-6 h-6 text-primary" />
+            <Wand2 className="w-6 h-6 text-black" />
           )}
         </button>
       </div>

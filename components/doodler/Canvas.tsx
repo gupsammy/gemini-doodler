@@ -92,9 +92,36 @@ export function Canvas() {
 
     // Function to resize canvas to fill screen
     const resizeCanvas = () => {
-      // Set canvas to fill window
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      // Calculate canvas dimensions with max size of 1024x1024
+      const maxDimension = 1024;
+      let canvasWidth = Math.min(window.innerWidth, maxDimension);
+      let canvasHeight = Math.min(window.innerHeight, maxDimension);
+
+      // Maintain aspect ratio (if needed)
+      if (window.innerWidth > window.innerHeight) {
+        // Landscape orientation
+        const aspectRatio = window.innerWidth / window.innerHeight;
+        canvasHeight = Math.min(canvasWidth / aspectRatio, maxDimension);
+      } else {
+        // Portrait orientation
+        const aspectRatio = window.innerHeight / window.innerWidth;
+        canvasWidth = Math.min(canvasHeight / aspectRatio, maxDimension);
+      }
+
+      // Ensure we don't exceed max dimensions
+      canvasWidth = Math.min(canvasWidth, maxDimension);
+      canvasHeight = Math.min(canvasHeight, maxDimension);
+
+      // Round dimensions to integers
+      canvas.width = Math.round(canvasWidth);
+      canvas.height = Math.round(canvasHeight);
+
+      // Center the canvas in the viewport
+      canvas.style.margin = "auto";
+      canvas.style.position = "absolute";
+      canvas.style.top = "50%";
+      canvas.style.left = "50%";
+      canvas.style.transform = "translate(-50%, -50%)";
 
       // Initialize panOffset if it doesn't exist
       if (!state.canvasState.panOffset) {
@@ -215,9 +242,14 @@ export function Canvas() {
     event: React.MouseEvent | React.Touch
   ) => {
     const rect = canvas.getBoundingClientRect();
+
+    // Calculate accurate mouse position on the canvas accounting for scaling
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
     return {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
+      x: (event.clientX - rect.left) * scaleX,
+      y: (event.clientY - rect.top) * scaleY,
     };
   };
 
