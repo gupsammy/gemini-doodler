@@ -153,7 +153,8 @@ const toolGroups = [
 ];
 
 export function ToolBar() {
-  const { state, setCurrentTool, updateCanvasState } = useDoodler();
+  const { state, setCurrentTool, updateCanvasState, addHistoryItem } =
+    useDoodler();
 
   const [isMobile, setIsMobile] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -210,14 +211,37 @@ export function ToolBar() {
               const ctx = canvas.getContext("2d");
               if (!ctx) return;
 
-              // Draw the image at center of canvas
-              const x = (canvas.width - img.width) / 2;
-              const y = (canvas.height - img.height) / 2;
-              ctx.drawImage(img, x, y);
+              // Calculate dimensions to fit image properly while maintaining aspect ratio
+              const canvasWidth = canvas.width;
+              const canvasHeight = canvas.height;
+
+              // Calculate scaling ratio
+              const scaleRatio = Math.min(
+                canvasWidth / img.width,
+                canvasHeight / img.height
+              );
+
+              // Calculate new dimensions that maintain aspect ratio
+              const newWidth = img.width * scaleRatio;
+              const newHeight = img.height * scaleRatio;
+
+              // Calculate centering positions
+              const x = (canvasWidth - newWidth) / 2;
+              const y = (canvasHeight - newHeight) / 2;
+
+              // Draw the resized image at the center of canvas
+              ctx.drawImage(img, x, y, newWidth, newHeight);
 
               // Update canvas state
               updateCanvasState({
                 imageData: ctx.getImageData(0, 0, canvas.width, canvas.height),
+              });
+
+              // Add to history
+              const imageData = canvas.toDataURL("image/png");
+              addHistoryItem({
+                imageData,
+                type: "user-edit",
               });
             };
             img.src = event.target?.result as string;
