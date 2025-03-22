@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef, useContext } from "react";
 import { PanelContext } from "@/lib/panel-context";
+import Image from "next/image";
 
 export function HistorySidebar() {
   const { state, goToHistoryItem, deleteHistoryItem, clearHistory } =
@@ -180,10 +181,14 @@ export function HistorySidebar() {
                       title={item.prompt || "User edit"}
                     >
                       <div className="relative">
-                        <img
+                        <Image
                           src={item.imageData}
                           alt={item.prompt || "Canvas state"}
                           className="w-full h-auto object-contain"
+                          width={500}
+                          height={500}
+                          unoptimized={item.imageData.startsWith("data:")}
+                          priority={false}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-2">
                           <div className="flex items-center text-xs bg-background/60 backdrop-blur-sm rounded px-1.5 py-0.5">
