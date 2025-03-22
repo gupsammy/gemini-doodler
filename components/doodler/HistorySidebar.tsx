@@ -26,6 +26,7 @@ export function HistorySidebar() {
   const { activePanel, setActivePanel } = useContext(PanelContext);
   const isExpanded = activePanel === "history";
   const isInitialRenderRef = useRef(true);
+  const [isRendered, setIsRendered] = useState(false);
 
   // Detect mobile viewport
   useEffect(() => {
@@ -38,6 +39,11 @@ export function HistorySidebar() {
 
     // Add resize listener
     window.addEventListener("resize", checkMobile);
+
+    // Force rendered state after a short delay to ensure component mounts properly in mobile
+    setTimeout(() => {
+      setIsRendered(true);
+    }, 100);
 
     // Cleanup
     return () => window.removeEventListener("resize", checkMobile);
@@ -109,8 +115,8 @@ export function HistorySidebar() {
   // Always render the component, but conditionally render contents
   return (
     <>
-      {/* Only show history UI if there are items */}
-      {state.history.length > 0 && (
+      {/* Only show history UI if there are items and component has rendered */}
+      {state.history.length > 0 && isRendered && (
         <>
           {/* Collapsed state - just show a button */}
           {!isExpanded && (

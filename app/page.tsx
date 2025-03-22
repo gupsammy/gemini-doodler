@@ -13,9 +13,27 @@ import { PanelContext } from "../lib/panel-context";
 export default function Home() {
   const [activePanel, setActivePanel] = useState<string | null>(null);
 
+  // Ensure panel state is preserved during keyboard events
+  const setPanelState = (panel: string | null) => {
+    // Prevent panel state from changing during certain conditions
+    const isMobile = window.innerWidth < 768;
+    // Check if the keyboard is likely visible
+    const isKeyboardVisible =
+      isMobile && window.innerHeight < window.outerHeight;
+
+    // If the keyboard is visible and the panel should be open, don't close it accidentally
+    if (isKeyboardVisible && activePanel === panel) {
+      return;
+    }
+
+    setActivePanel(panel);
+  };
+
   return (
     <DoodlerProvider>
-      <PanelContext.Provider value={{ activePanel, setActivePanel }}>
+      <PanelContext.Provider
+        value={{ activePanel, setActivePanel: setPanelState }}
+      >
         <div
           className="w-screen h-screen overflow-hidden"
           data-active-panel={activePanel}

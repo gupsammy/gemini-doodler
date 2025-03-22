@@ -58,6 +58,7 @@ export function Canvas() {
 
   // Handle touch events
   const handleTouchStart = (event: React.TouchEvent) => {
+    // Prevent default but don't stop propagation
     event.preventDefault();
     if (event.touches[0]) {
       handleDrawingStart(event.touches[0]);
@@ -65,6 +66,7 @@ export function Canvas() {
   };
 
   const handleTouchMove = (event: React.TouchEvent) => {
+    // Prevent default but don't stop propagation
     event.preventDefault();
     if (event.touches[0]) {
       handleDrawingMove(event.touches[0]);

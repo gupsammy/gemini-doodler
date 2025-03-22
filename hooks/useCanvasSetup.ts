@@ -23,6 +23,21 @@ export const useCanvasSetup = ({
 
     // Function to resize canvas to fill screen
     const resizeCanvas = () => {
+      // Save current canvas state if it exists before resizing
+      let currentImageData = null;
+      if (canvas && ctx) {
+        try {
+          currentImageData = ctx.getImageData(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+          );
+        } catch (e) {
+          console.error("Could not save canvas state:", e);
+        }
+      }
+
       // Get the viewport dimensions with some padding
       const padding = 32; // 16px padding on each side
       const viewportWidth = window.innerWidth - padding;
@@ -80,7 +95,11 @@ export const useCanvasSetup = ({
         tempCanvas.height = state.canvasState.height;
         const tempCtx = tempCanvas.getContext("2d");
         if (tempCtx) {
-          tempCtx.putImageData(state.canvasState.imageData, 0, 0);
+          // Use the saved image data from before resize if available and if this is triggered by keyboard
+          // This prevents canvas from being cleared when keyboard appears
+          const sourceImageData =
+            currentImageData || state.canvasState.imageData;
+          tempCtx.putImageData(sourceImageData, 0, 0);
           ctx.fillStyle = "#ffffff";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -131,12 +150,24 @@ export const useCanvasSetup = ({
 
     // Add resize event listener
     const handleResize = () => {
-      window.resizeTriggeredRender = true;
+      // Check if the resize is likely due to keyboard (only on mobile)
+      const isMobile = window.innerWidth < 768;
+      const isKeyboardResize =
+        isMobile &&
+        window.innerHeight < window.outerHeight &&
+        !window.resizeTriggeredRender;
+
+      // Only set resize triggered flag if it's not from the keyboard
+      window.resizeTriggeredRender = !isKeyboardResize;
+
       resizeCanvas();
-      // Reset the flag after a short delay
-      setTimeout(() => {
-        window.resizeTriggeredRender = false;
-      }, 100);
+
+      // Reset the flag after a short delay, but only if it was set
+      if (window.resizeTriggeredRender) {
+        setTimeout(() => {
+          window.resizeTriggeredRender = false;
+        }, 100);
+      }
     };
 
     window.addEventListener("resize", handleResize);

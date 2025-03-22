@@ -11,6 +11,7 @@ export function PromptInput() {
   const [temperature, setTemperature] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [savedCanvasImage, setSavedCanvasImage] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Detect mobile viewport
@@ -32,6 +33,18 @@ export function PromptInput() {
   // Focus the input when clicking on the container
   const handleContainerClick = () => {
     if (inputRef.current) {
+      // On mobile, save the canvas state before focusing
+      if (isMobile) {
+        const canvas = document.querySelector("canvas") as HTMLCanvasElement;
+        if (canvas) {
+          try {
+            // Save the canvas image data to our state
+            setSavedCanvasImage(canvas.toDataURL("image/png"));
+          } catch (e) {
+            console.error("Error saving canvas before keyboard focus:", e);
+          }
+        }
+      }
       inputRef.current.focus();
     }
   };
@@ -64,37 +77,45 @@ export function PromptInput() {
         throw new Error("Canvas not found");
       }
 
-      // Create a temporary canvas for resizing
-      const tempCanvas = document.createElement("canvas");
-      const maxDimension = 1024;
-
-      // Determine dimensions while maintaining aspect ratio
-      let width = canvas.width;
-      let height = canvas.height;
-      const aspectRatio = width / height;
-
-      if (width > height) {
-        // Landscape orientation - width is the longer edge
-        width = maxDimension;
-        height = Math.round(maxDimension / aspectRatio);
+      // Use the saved canvas image if available (mobile keyboard case)
+      let imageData;
+      if (isMobile && savedCanvasImage) {
+        imageData = savedCanvasImage;
+        // Reset the saved image
+        setSavedCanvasImage(null);
       } else {
-        // Portrait orientation - height is the longer edge
-        height = maxDimension;
-        width = Math.round(maxDimension * aspectRatio);
+        // Create a temporary canvas for resizing
+        const tempCanvas = document.createElement("canvas");
+        const maxDimension = 1024;
+
+        // Determine dimensions while maintaining aspect ratio
+        let width = canvas.width;
+        let height = canvas.height;
+        const aspectRatio = width / height;
+
+        if (width > height) {
+          // Landscape orientation - width is the longer edge
+          width = maxDimension;
+          height = Math.round(maxDimension / aspectRatio);
+        } else {
+          // Portrait orientation - height is the longer edge
+          height = maxDimension;
+          width = Math.round(maxDimension * aspectRatio);
+        }
+
+        // Set dimensions on temp canvas
+        tempCanvas.width = Math.round(width);
+        tempCanvas.height = Math.round(height);
+
+        // Draw the original canvas onto the temp canvas (resized)
+        const tempCtx = tempCanvas.getContext("2d");
+        if (tempCtx) {
+          tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+        }
+
+        // Get the resized image data
+        imageData = tempCanvas.toDataURL("image/png");
       }
-
-      // Set dimensions on temp canvas
-      tempCanvas.width = Math.round(width);
-      tempCanvas.height = Math.round(height);
-
-      // Draw the original canvas onto the temp canvas (resized)
-      const tempCtx = tempCanvas.getContext("2d");
-      if (tempCtx) {
-        tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
-      }
-
-      // Get the resized image data
-      const imageData = tempCanvas.toDataURL("image/png");
 
       // Send request to the Gemini API endpoint
       const response = await fetch("/api/image/generate", {

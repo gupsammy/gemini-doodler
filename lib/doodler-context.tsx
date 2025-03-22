@@ -21,6 +21,23 @@ import {
   deleteHistoryItem as deleteHistoryItemDB,
 } from "./doodler-db";
 
+// Helper function to generate UUID with fallback for browsers that don't support crypto.randomUUID()
+const generateUUID = (): string => {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    // Fallback implementation for browsers without crypto.randomUUID()
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+      /[xy]/g,
+      function (c) {
+        const r = (Math.random() * 16) | 0;
+        const v = c === "x" ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      }
+    );
+  }
+};
+
 // Default tool settings
 const defaultToolSettings: ToolSettings = {
   lineWidth: 5,
@@ -168,7 +185,7 @@ export function DoodlerProvider({ children }: { children: ReactNode }) {
   ) => {
     const newItem: DoodleHistoryItem = {
       ...item,
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       timestamp: Date.now(),
     };
 
