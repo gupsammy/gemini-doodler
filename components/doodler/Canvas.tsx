@@ -260,7 +260,15 @@ export function Canvas() {
         clearTimeout(resizeDebounceTimeout);
       }
     };
-  }, []);
+  }, [
+    resizeDebounceTimeout,
+    state.canvasState.width,
+    state.canvasState.height,
+    state.canvasState.panOffset,
+    state.canvasState.imageData,
+    updateCanvasState,
+    addHistoryItem,
+  ]);
 
   // Update canvas when imageData changes
   useEffect(() => {
@@ -844,8 +852,8 @@ export function Canvas() {
       lines.forEach((line, index) => {
         ctx.fillText(
           line,
-          state.textInputPosition.x,
-          state.textInputPosition.y + index * (fontSize * 1.2)
+          state.textInputPosition?.x || 0,
+          (state.textInputPosition?.y || 0) + index * (fontSize * 1.2)
         );
       });
 
