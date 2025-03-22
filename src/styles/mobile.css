@@ -26,6 +26,8 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+    /* When toolbar is open, close other panels */
+    z-index: 102;
   }
 
   /* Make undo/redo container smaller */
@@ -69,12 +71,22 @@
     position: fixed;
     bottom: 110px;
     right: 10px;
-    z-index: 100;
+    z-index: 101;
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     padding: 15px;
     width: auto;
     max-width: 90%;
+  }
+
+  /* Ensure only one panel can be open at a time */
+  .app-container[data-active-panel="toolbar"] .tool-settings-container,
+  .app-container[data-active-panel="toolbar"] .history-container.open,
+  .app-container[data-active-panel="history"] .tool-settings-container,
+  .app-container[data-active-panel="history"] .toolbar.open,
+  .app-container[data-active-panel="toolSettings"] .history-container.open,
+  .app-container[data-active-panel="toolSettings"] .toolbar.open {
+    display: none !important;
   }
 }

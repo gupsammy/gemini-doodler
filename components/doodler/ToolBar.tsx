@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Brush,
   Eraser,
@@ -21,6 +21,7 @@ import {
 import { useDoodler } from "@/lib/doodler-context";
 import { Tool } from "@/lib/doodler-types";
 import { cn } from "@/lib/utils";
+import { PanelContext } from "@/app/page";
 
 // Define available tools
 const tools: Tool[] = [
@@ -157,7 +158,8 @@ export function ToolBar() {
     useDoodler();
 
   const [isMobile, setIsMobile] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { activePanel, setActivePanel } = useContext(PanelContext);
+  const mobileMenuOpen = activePanel === "toolbar";
 
   // Detect mobile viewport
   useEffect(() => {
@@ -258,7 +260,7 @@ export function ToolBar() {
       setCurrentTool(tool);
       // Close mobile menu after selecting a tool
       if (isMobile) {
-        setMobileMenuOpen(false);
+        setActivePanel(null);
       }
     }
   };
@@ -275,14 +277,15 @@ export function ToolBar() {
         {/* Mobile toggle button */}
         <button
           className="fixed top-4 right-4 z-20 p-2 bg-background/90 backdrop-blur-sm rounded-lg border border-border shadow-lg"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          onClick={() => setActivePanel(mobileMenuOpen ? null : "toolbar")}
+          aria-label={mobileMenuOpen ? "Close toolbar" : "Open toolbar"}
         >
           {mobileMenuOpen ? toolIcons.x : toolIcons.menu}
         </button>
 
         {/* Mobile toolbar */}
         {mobileMenuOpen && (
-          <div className="fixed top-4 right-16 z-10 bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg p-3 max-h-[80vh] overflow-y-auto max-w-[180px]">
+          <div className="fixed top-4 right-16 z-30 bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg p-3 max-h-[80vh] overflow-y-auto max-w-[180px]">
             {toolGroups.map((group, groupIndex) => (
               <div key={`group-${groupIndex}`}>
                 {groupIndex > 0 && (

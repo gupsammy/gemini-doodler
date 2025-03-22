@@ -24,7 +24,7 @@ const App = () => {
   };
 
   return (
-    <div className="app-container">
+    <div className="app-container" data-active-panel={activePanel}>
       <Toolbar activePanel={activePanel} togglePanel={togglePanel} />
 
       <History activePanel={activePanel} togglePanel={togglePanel} />

@@ -15,13 +15,15 @@ import {
   Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
+import { PanelContext } from "@/app/page";
 
 export function HistorySidebar() {
   const { state, goToHistoryItem, deleteHistoryItem, clearHistory } =
     useDoodler();
-  const [isExpanded, setIsExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const { activePanel, setActivePanel } = useContext(PanelContext);
+  const isExpanded = activePanel === "history";
   const isInitialRenderRef = useRef(true);
 
   // Detect mobile viewport
@@ -112,11 +114,12 @@ export function HistorySidebar() {
           {/* Collapsed state - just show a button */}
           {!isExpanded && (
             <button
-              onClick={() => setIsExpanded(true)}
+              onClick={() => setActivePanel("history")}
               className={cn(
-                "fixed bg-background/90 backdrop-blur-sm rounded-lg border border-border shadow-lg z-10 p-2 flex items-center gap-1 hover:bg-accent transition-colors",
+                "fixed bg-background/90 backdrop-blur-sm rounded-lg border border-border shadow-lg z-20 p-2 flex items-center gap-1 hover:bg-accent transition-colors",
                 isMobile ? "top-16 right-4" : "top-4 right-4"
               )}
+              aria-label="Open history"
             >
               <History className="w-4 h-4" />
               {!isMobile && (
@@ -132,7 +135,7 @@ export function HistorySidebar() {
           {isExpanded && (
             <div
               className={cn(
-                "fixed right-4 bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg z-10 flex flex-col",
+                "fixed right-4 bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg z-25 flex flex-col",
                 isMobile ? "top-20 bottom-20 w-56" : "top-4 bottom-4 w-64"
               )}
             >
@@ -155,7 +158,7 @@ export function HistorySidebar() {
                     variant="ghost"
                     size="sm"
                     className="h-7 px-2"
-                    onClick={() => setIsExpanded(false)}
+                    onClick={() => setActivePanel(null)}
                     title="Collapse sidebar"
                   >
                     <ChevronRight className="h-4 w-4" />

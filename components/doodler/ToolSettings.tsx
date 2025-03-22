@@ -1,15 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { CirclePicker } from "react-color";
 import { Slider } from "@/components/ui/slider";
 import { useDoodler } from "@/lib/doodler-context";
 import { Settings } from "lucide-react";
+import { PanelContext } from "@/app/page";
 
 export function ToolSettings() {
   const { state, updateToolSettings } = useDoodler();
   const [isMobile, setIsMobile] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const { activePanel, setActivePanel } = useContext(PanelContext);
+  const isExpanded = activePanel === "toolSettings";
 
   // Detect mobile viewport
   useEffect(() => {
@@ -178,19 +180,20 @@ export function ToolSettings() {
     if (!isExpanded) {
       return (
         <button
-          className="fixed top-28 right-4 z-10 p-2 bg-background/90 backdrop-blur-sm rounded-lg border border-border shadow-lg"
-          onClick={() => setIsExpanded(true)}
+          className="fixed top-28 right-4 z-20 p-2 bg-background/90 backdrop-blur-sm rounded-lg border border-border shadow-lg"
+          onClick={() => setActivePanel("toolSettings")}
+          aria-label="Open tool settings"
         >
           <Settings className="w-4 h-4" />
         </button>
       );
     } else {
       return (
-        <div className="fixed top-20 right-4 z-10 bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg p-3 flex flex-col gap-3">
+        <div className="fixed top-20 right-4 z-25 bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg p-3 flex flex-col gap-3">
           {/* Close button */}
           <button
             className="absolute top-2 right-2 z-10 p-1 rounded-full hover:bg-accent/50"
-            onClick={() => setIsExpanded(false)}
+            onClick={() => setActivePanel(null)}
             aria-label="Close settings"
           >
             <svg
