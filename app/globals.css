@@ -2,13 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+/* Mobile viewport handling */
 html,
 body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
   height: 100%;
   overflow: hidden;
+  position: fixed;
+  width: 100%;
+  /* Set CSS variable to store viewport height */
+  --app-height: 100vh;
+}
+
+/* Use the stored app height instead of viewport height */
+@supports (-webkit-touch-callout: none) {
+  .h-screen,
+  .h-full,
+  [style*="height: 100%"] {
+    height: var(--app-height);
+  }
+}
+
+@media (max-width: 768px) {
+  /* Prevent content from being pushed up by keyboard */
+  body {
+    overscroll-behavior: none;
+  }
 }
 
 body {
