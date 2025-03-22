@@ -7,7 +7,6 @@ import { useDoodler } from "@/lib/doodler-context";
 declare global {
   interface Window {
     resizeTriggeredRender?: boolean;
-    canvasDrawingData?: string; // For storing canvas data during resize
   }
 }
 
@@ -26,11 +25,10 @@ export function Canvas() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
+  const [lastDrawPosition, setLastDrawPosition] = useState({ x: 0, y: 0 });
   const [lastPanPosition, setLastPanPosition] = useState({ x: 0, y: 0 });
   const initialRenderRef = useRef(true);
   const [hasMovedSinceDown, setHasMovedSinceDown] = useState(false);
-  const [resizeDebounceTimeout, setResizeDebounceTimeout] =
-    useState<NodeJS.Timeout | null>(null);
 
   // Add keyboard event listener for Escape key
   useEffect(() => {
@@ -95,12 +93,6 @@ export function Canvas() {
 
     // Function to resize canvas to fill screen
     const resizeCanvas = () => {
-      // Before resizing, save the current canvas state
-      if (canvas.width > 0 && canvas.height > 0 && !initialRenderRef.current) {
-        // Store the current drawing in window for restoration after resize
-        window.canvasDrawingData = canvas.toDataURL("image/png");
-      }
-
       // Get the viewport dimensions with some padding
       const padding = 32; // 16px padding on each side
       const viewportWidth = window.innerWidth - padding;
@@ -151,33 +143,8 @@ export function Canvas() {
         });
       }
 
-      // If we have stored canvas data from before the resize, restore it
-      if (window.canvasDrawingData && !initialRenderRef.current) {
-        // Load the saved drawing
-        const img = new Image();
-        img.onload = () => {
-          // Clear the canvas first
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-          // Apply pan offset when rendering
-          const offsetX = state.canvasState.panOffset?.x || 0;
-          const offsetY = state.canvasState.panOffset?.y || 0;
-
-          ctx.save();
-          ctx.translate(offsetX, offsetY);
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          ctx.restore();
-
-          // Update canvas state with new dimensions and image data
-          updateCanvasState({
-            width: canvas.width,
-            height: canvas.height,
-            imageData: ctx.getImageData(0, 0, canvas.width, canvas.height),
-          });
-        };
-        img.src = window.canvasDrawingData;
-      } else if (state.canvasState.imageData) {
+      // If we have existing image data, scale it to fit new dimensions
+      if (state.canvasState.imageData) {
         const tempCanvas = document.createElement("canvas");
         tempCanvas.width = state.canvasState.width;
         tempCanvas.height = state.canvasState.height;
@@ -235,40 +202,19 @@ export function Canvas() {
     // Add resize event listener
     const handleResize = () => {
       window.resizeTriggeredRender = true;
-
-      // Debounce resize handling to avoid multiple rapid redraws
-      if (resizeDebounceTimeout) {
-        clearTimeout(resizeDebounceTimeout);
-      }
-
-      // Resize canvas immediately to fit the new viewport
       resizeCanvas();
-
-      // Reset the flag after resize is completely done
-      const timeout = setTimeout(() => {
+      // Reset the flag after a short delay
+      setTimeout(() => {
         window.resizeTriggeredRender = false;
-      }, 300);
-
-      setResizeDebounceTimeout(timeout);
+      }, 100);
     };
 
     window.addEventListener("resize", handleResize);
 
     return () => {
       window.removeEventListener("resize", handleResize);
-      if (resizeDebounceTimeout) {
-        clearTimeout(resizeDebounceTimeout);
-      }
     };
-  }, [
-    resizeDebounceTimeout,
-    state.canvasState.width,
-    state.canvasState.height,
-    state.canvasState.panOffset,
-    state.canvasState.imageData,
-    updateCanvasState,
-    addHistoryItem,
-  ]);
+  }, []);
 
   // Update canvas when imageData changes
   useEffect(() => {
@@ -434,6 +380,7 @@ export function Canvas() {
 
     const position = getMousePosition(canvas, event);
     setStartPosition(position);
+    setLastDrawPosition(position);
     // Reset move tracking state
     setHasMovedSinceDown(false);
 
@@ -506,6 +453,7 @@ export function Canvas() {
     const touch = event.touches[0];
     const position = getMousePosition(canvas, touch);
     setStartPosition(position);
+    setLastDrawPosition(position);
     setHasMovedSinceDown(false);
 
     // Same logic as mouse down but for touch
@@ -599,8 +547,24 @@ export function Canvas() {
 
       if (["brush", "eraser"].includes(state.currentTool.id)) {
         // Continuous drawing
+        // If there's a significant gap between the last position and current position,
+        // we need to restart the path to avoid jumps
+        const distance = Math.sqrt(
+          Math.pow(position.x - lastDrawPosition.x, 2) +
+            Math.pow(position.y - lastDrawPosition.y, 2)
+        );
+
+        if (distance > 10) {
+          // If distance is too large, start a new segment
+          ctx.beginPath();
+          ctx.moveTo(lastDrawPosition.x, lastDrawPosition.y);
+        }
+
         ctx.lineTo(position.x, position.y);
         ctx.stroke();
+
+        // Update last draw position
+        setLastDrawPosition(position);
       } else if (state.currentTool.id === "line") {
         // Preview line (redraw from stored image)
         if (state.canvasState.imageData) {
@@ -694,8 +658,25 @@ export function Canvas() {
       }
 
       if (["brush", "eraser"].includes(state.currentTool.id)) {
+        // Continuous drawing
+        // If there's a significant gap between the last position and current position,
+        // we need to restart the path to avoid jumps
+        const distance = Math.sqrt(
+          Math.pow(position.x - lastDrawPosition.x, 2) +
+            Math.pow(position.y - lastDrawPosition.y, 2)
+        );
+
+        if (distance > 10) {
+          // If distance is too large, start a new segment
+          ctx.beginPath();
+          ctx.moveTo(lastDrawPosition.x, lastDrawPosition.y);
+        }
+
         ctx.lineTo(position.x, position.y);
         ctx.stroke();
+
+        // Update last draw position
+        setLastDrawPosition(position);
       } else if (state.currentTool.id === "line") {
         if (state.canvasState.imageData) {
           ctx.putImageData(state.canvasState.imageData, 0, 0);
@@ -852,8 +833,8 @@ export function Canvas() {
       lines.forEach((line, index) => {
         ctx.fillText(
           line,
-          state.textInputPosition?.x || 0,
-          (state.textInputPosition?.y || 0) + index * (fontSize * 1.2)
+          state.textInputPosition.x,
+          state.textInputPosition.y + index * (fontSize * 1.2)
         );
       });
 
