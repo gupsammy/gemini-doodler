@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Wand2 } from "lucide-react";
 import { useDoodler } from "@/lib/doodler-context";
 import { cn } from "@/lib/utils";
+import { useKeyboardVisibility } from "@/hooks/useKeyboardVisibility";
 
 export function PromptInput() {
   const { setIsPrompting, addHistoryItem } = useDoodler();
@@ -12,6 +13,7 @@ export function PromptInput() {
   const [isLoading, setIsLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [savedCanvasImage, setSavedCanvasImage] = useState<string | null>(null);
+  const { isKeyboardVisible } = useKeyboardVisibility();
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Detect mobile viewport
@@ -30,11 +32,28 @@ export function PromptInput() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // Save canvas state when keyboard appears and restore when it disappears
+  useEffect(() => {
+    if (!isMobile) return;
+
+    if (isKeyboardVisible && !savedCanvasImage) {
+      // Save canvas when keyboard appears
+      const canvas = document.querySelector("canvas") as HTMLCanvasElement;
+      if (canvas) {
+        try {
+          setSavedCanvasImage(canvas.toDataURL("image/png"));
+        } catch (e) {
+          console.error("Error saving canvas when keyboard appeared:", e);
+        }
+      }
+    }
+  }, [isMobile, isKeyboardVisible, savedCanvasImage]);
+
   // Focus the input when clicking on the container
   const handleContainerClick = () => {
     if (inputRef.current) {
       // On mobile, save the canvas state before focusing
-      if (isMobile) {
+      if (isMobile && !savedCanvasImage) {
         const canvas = document.querySelector("canvas") as HTMLCanvasElement;
         if (canvas) {
           try {
@@ -81,8 +100,6 @@ export function PromptInput() {
       let imageData;
       if (isMobile && savedCanvasImage) {
         imageData = savedCanvasImage;
-        // Reset the saved image
-        setSavedCanvasImage(null);
       } else {
         // Create a temporary canvas for resizing
         const tempCanvas = document.createElement("canvas");

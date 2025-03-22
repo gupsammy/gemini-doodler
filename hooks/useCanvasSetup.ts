@@ -153,12 +153,17 @@ export const useCanvasSetup = ({
       // Check if the resize is likely due to keyboard (only on mobile)
       const isMobile = window.innerWidth < 768;
       const isKeyboardResize =
-        isMobile &&
-        window.innerHeight < window.outerHeight &&
-        !window.resizeTriggeredRender;
+        isMobile && window.innerHeight < window.outerHeight;
 
-      // Only set resize triggered flag if it's not from the keyboard
+      // Set a flag on window to indicate this is a keyboard resize
       window.resizeTriggeredRender = !isKeyboardResize;
+
+      // Only resize if it's not a keyboard event on mobile
+      if (isMobile && isKeyboardResize) {
+        // For keyboard events, don't trigger a full resize
+        // Just preserve current state
+        return;
+      }
 
       resizeCanvas();
 

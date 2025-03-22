@@ -7,11 +7,31 @@ import { UndoRedoControls } from "@/components/doodler/UndoRedoControls";
 import { PromptInput } from "@/components/doodler/PromptInput";
 import { HistorySidebar } from "@/components/doodler/HistorySidebar";
 import { ToolSettings } from "@/components/doodler/ToolSettings";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PanelContext } from "../lib/panel-context";
 
 export default function Home() {
   const [activePanel, setActivePanel] = useState<string | null>(null);
+
+  // Fix for mobile viewport height issues with keyboard
+  useEffect(() => {
+    // Set CSS variable based on window inner height
+    const setAppHeight = () => {
+      document.documentElement.style.setProperty(
+        "--app-height",
+        `${window.innerHeight}px`
+      );
+    };
+
+    // Initial set
+    setAppHeight();
+
+    // Add event listener for orientation changes and keyboard
+    window.addEventListener("resize", setAppHeight);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", setAppHeight);
+  }, []);
 
   // Ensure panel state is preserved during keyboard events
   const setPanelState = (panel: string | null) => {

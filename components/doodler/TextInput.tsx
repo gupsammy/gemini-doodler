@@ -1,5 +1,6 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useDoodler } from "@/lib/doodler-context";
+import { useKeyboardVisibility } from "@/hooks/useKeyboardVisibility";
 
 interface TextInputProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -8,13 +9,18 @@ interface TextInputProps {
 export function TextInput({ canvasRef }: TextInputProps) {
   const {
     state,
-    setTextInputActive,
-    setTextInputValue,
     updateCanvasState,
     addHistoryItem,
+    setTextInputActive,
+    setTextInputValue,
   } = useDoodler();
-  const textInputRef = useRef<HTMLTextAreaElement>(null);
 
+  const textInputRef = useRef<HTMLTextAreaElement>(null);
+  const [savedCanvasImage, setSavedCanvasImage] = useState<string | null>(null);
+  const { isKeyboardVisible } = useKeyboardVisibility();
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Position the text input when it becomes active
   useEffect(() => {
     const textInput = textInputRef.current;
     if (!textInput) return;
@@ -35,11 +41,50 @@ export function TextInput({ canvasRef }: TextInputProps) {
     }
   }, [state.textInputActive, state.textInputPosition, state.textInputValue]);
 
+  // Detect mobile devices
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Save canvas state when keyboard appears
+  useEffect(() => {
+    if (!isMobile || !state.textInputActive) return;
+
+    if (isKeyboardVisible && !savedCanvasImage) {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        try {
+          setSavedCanvasImage(canvas.toDataURL("image/png"));
+        } catch (e) {
+          console.error("Error saving canvas when keyboard appeared:", e);
+        }
+      }
+    }
+  }, [
+    isMobile,
+    isKeyboardVisible,
+    state.textInputActive,
+    savedCanvasImage,
+    canvasRef,
+    state,
+  ]);
+
+  // Handle text input changes
   const handleTextInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    // Store the current text in state
-    setTextInputValue(e.target.value);
+    // Store the current text in state if the function exists
+    if (setTextInputValue) {
+      setTextInputValue(e.target.value);
+    }
   };
 
+  // Handle text input blur/completion
   const handleTextInputBlur = () => {
     const canvas = canvasRef.current;
     const textInput = textInputRef.current;
@@ -78,6 +123,9 @@ export function TextInput({ canvasRef }: TextInputProps) {
         imageData: dataUrl,
         type: "user-edit",
       });
+
+      // Clear the saved image
+      setSavedCanvasImage(null);
 
       // Hide text input
       setTextInputActive(false);

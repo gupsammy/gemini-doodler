@@ -74,7 +74,19 @@ export function Canvas() {
   };
 
   return (
-    <div ref={containerRef} className="w-full h-full relative">
+    <div
+      ref={containerRef}
+      className="w-full h-full relative"
+      style={{
+        // Use fixed positioning for better behavior with keyboard
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        overflow: "hidden",
+      }}
+    >
       <canvas
         ref={canvasRef}
         className="w-full h-full relative touch-none"
