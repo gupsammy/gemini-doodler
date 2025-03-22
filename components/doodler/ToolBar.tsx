@@ -282,34 +282,36 @@ export function ToolBar() {
 
         {/* Mobile toolbar */}
         {mobileMenuOpen && (
-          <div className="fixed top-4 right-16 bottom-32 z-10 bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg p-2 flex flex-col gap-1">
+          <div className="fixed top-4 right-16 z-10 bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg p-3 max-h-[80vh] overflow-y-auto max-w-[180px]">
             {toolGroups.map((group, groupIndex) => (
-              <div key={`group-${groupIndex}`} className="flex flex-col gap-1">
+              <div key={`group-${groupIndex}`}>
                 {groupIndex > 0 && (
-                  <div className="border-t border-border my-1"></div>
+                  <div className="border-t border-border my-2"></div>
                 )}
-                {group.map((toolId) => {
-                  const tool = findToolById(toolId);
-                  if (!tool) return null;
+                <div className="grid grid-cols-3 gap-2">
+                  {group.map((toolId) => {
+                    const tool = findToolById(toolId);
+                    if (!tool) return null;
 
-                  return (
-                    <button
-                      key={toolId}
-                      className={cn(
-                        "p-2 rounded-lg hover:bg-accent transition-colors duration-200 relative group",
-                        state.currentTool.id === toolId &&
-                          "bg-primary text-primary-foreground"
-                      )}
-                      onClick={() => handleToolClick(tool)}
-                      title={tool.name}
-                      aria-label={tool.name}
-                    >
-                      <div className="flex justify-center items-center">
-                        {toolIcons[tool.icon]}
-                      </div>
-                    </button>
-                  );
-                })}
+                    return (
+                      <button
+                        key={toolId}
+                        className={cn(
+                          "p-1.5 rounded-lg hover:bg-accent transition-colors duration-200 relative",
+                          state.currentTool.id === toolId &&
+                            "bg-primary text-primary-foreground"
+                        )}
+                        onClick={() => handleToolClick(tool)}
+                        title={tool.name}
+                        aria-label={tool.name}
+                      >
+                        <div className="flex justify-center items-center">
+                          {toolIcons[tool.icon]}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             ))}
           </div>

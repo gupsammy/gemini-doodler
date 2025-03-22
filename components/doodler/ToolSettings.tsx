@@ -187,79 +187,102 @@ export function ToolSettings() {
     } else {
       return (
         <div className="fixed top-20 right-4 z-10 bg-background/90 backdrop-blur-sm rounded-xl border border-border shadow-lg p-3 flex flex-col gap-3">
-          {/* Line Width Slider */}
-          {showStrokeWidth && (
-            <div className="flex flex-col gap-1">
-              <div className="text-xs font-medium flex justify-between">
-                <span>Size</span>
-                <span>{state.toolSettings.lineWidth || 1}px</span>
-              </div>
-              <Slider
-                defaultValue={[state.toolSettings.lineWidth || 1]}
-                max={50}
-                min={1}
-                step={1}
-                onValueChange={handleLineWidthChange}
-                className="mt-1"
-              />
-            </div>
-          )}
+          {/* Close button */}
+          <button
+            className="absolute top-2 right-2 z-10 p-1 rounded-full hover:bg-accent/50"
+            onClick={() => setIsExpanded(false)}
+            aria-label="Close settings"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
 
-          {/* Stroke Color */}
-          {showStrokeColor && (
-            <div className="flex flex-col gap-1">
-              <div className="text-xs font-medium mb-1">
-                {state.currentTool.id === "fill"
-                  ? "Fill Color"
-                  : "Stroke Color"}
-              </div>
-              <CirclePicker
-                colors={commonColors}
-                color={state.toolSettings.strokeStyle}
-                onChange={(color) => handleColorChange(color, "stroke")}
-                width="150px"
-                circleSize={18}
-                circleSpacing={8}
-              />
-            </div>
-          )}
-
-          {/* Fill Color for shapes */}
-          {showFillColor && (
-            <div className="flex flex-col gap-1 mt-2">
-              <div className="text-xs font-medium mb-1">Fill Color</div>
-              <div className="flex flex-col gap-2">
-                {/* Transparent option */}
-                <div
-                  className="flex items-center gap-2 cursor-pointer p-1 hover:bg-accent rounded"
-                  onClick={() =>
-                    updateToolSettings({ fillStyle: "transparent" })
-                  }
-                >
-                  <div
-                    className="w-5 h-5 rounded border border-border flex items-center justify-center"
-                    title="Transparent (No Fill)"
-                  >
-                    <div className="w-3 h-0 border-t border-dashed border-foreground/60" />
-                  </div>
-                  <span className="text-xs">No Fill</span>
+          <div className="mt-4">
+            {/* Line Width Slider */}
+            {showStrokeWidth && (
+              <div className="flex flex-col gap-1">
+                <div className="text-xs font-medium flex justify-between">
+                  <span>Size</span>
+                  <span>{state.toolSettings.lineWidth || 1}px</span>
                 </div>
+                <Slider
+                  defaultValue={[state.toolSettings.lineWidth || 1]}
+                  max={50}
+                  min={1}
+                  step={1}
+                  onValueChange={handleLineWidthChange}
+                  className="mt-1"
+                />
+              </div>
+            )}
 
+            {/* Stroke Color */}
+            {showStrokeColor && (
+              <div className="flex flex-col gap-1">
+                <div className="text-xs font-medium mb-1">
+                  {state.currentTool.id === "fill"
+                    ? "Fill Color"
+                    : "Stroke Color"}
+                </div>
                 <CirclePicker
                   colors={commonColors}
-                  color={
-                    state.toolSettings.fillStyle === "transparent"
-                      ? "#ffffff"
-                      : state.toolSettings.fillStyle
-                  }
-                  onChange={(color) => handleColorChange(color, "fill")}
+                  color={state.toolSettings.strokeStyle}
+                  onChange={(color) => handleColorChange(color, "stroke")}
                   width="150px"
                   circleSize={18}
                   circleSpacing={8}
                 />
               </div>
-            </div>
-          )}
+            )}
+
+            {/* Fill Color for shapes */}
+            {showFillColor && (
+              <div className="flex flex-col gap-1 mt-2">
+                <div className="text-xs font-medium mb-1">Fill Color</div>
+                <div className="flex flex-col gap-2">
+                  {/* Transparent option */}
+                  <div
+                    className="flex items-center gap-2 cursor-pointer p-1 hover:bg-accent rounded"
+                    onClick={() =>
+                      updateToolSettings({ fillStyle: "transparent" })
+                    }
+                  >
+                    <div
+                      className="w-5 h-5 rounded border border-border flex items-center justify-center"
+                      title="Transparent (No Fill)"
+                    >
+                      <div className="w-3 h-0 border-t border-dashed border-foreground/60" />
+                    </div>
+                    <span className="text-xs">No Fill</span>
+                  </div>
+
+                  <CirclePicker
+                    colors={commonColors}
+                    color={
+                      state.toolSettings.fillStyle === "transparent"
+                        ? "#ffffff"
+                        : state.toolSettings.fillStyle
+                    }
+                    onChange={(color) => handleColorChange(color, "fill")}
+                    width="150px"
+                    circleSize={18}
+                    circleSpacing={8}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       );
     }
