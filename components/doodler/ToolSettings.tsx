@@ -5,7 +5,7 @@ import { CirclePicker } from "react-color";
 import { Slider } from "@/components/ui/slider";
 import { useDoodler } from "@/lib/doodler-context";
 import { Settings } from "lucide-react";
-import { PanelContext } from "@/app/page";
+import { PanelContext } from "@/lib/panel-context";
 
 export function ToolSettings() {
   const { state, updateToolSettings } = useDoodler();

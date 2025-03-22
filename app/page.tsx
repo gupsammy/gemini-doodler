@@ -7,13 +7,8 @@ import { UndoRedoControls } from "@/components/doodler/UndoRedoControls";
 import { PromptInput } from "@/components/doodler/PromptInput";
 import { HistorySidebar } from "@/components/doodler/HistorySidebar";
 import { ToolSettings } from "@/components/doodler/ToolSettings";
-import { useState, createContext } from "react";
-
-// Create a context to manage panel state
-export const PanelContext = createContext<{
-  activePanel: string | null;
-  setActivePanel: (panel: string | null) => void;
-}>({ activePanel: null, setActivePanel: () => {} });
+import { useState } from "react";
+import { PanelContext } from "../lib/panel-context";
 
 export default function Home() {
   const [activePanel, setActivePanel] = useState<string | null>(null);

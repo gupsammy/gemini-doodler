@@ -21,7 +21,7 @@ import {
 import { useDoodler } from "@/lib/doodler-context";
 import { Tool } from "@/lib/doodler-types";
 import { cn } from "@/lib/utils";
-import { PanelContext } from "@/app/page";
+import { PanelContext } from "@/lib/panel-context";
 
 // Define available tools
 const tools: Tool[] = [

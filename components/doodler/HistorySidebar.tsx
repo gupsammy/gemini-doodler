@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef, useContext } from "react";
-import { PanelContext } from "@/app/page";
+import { PanelContext } from "@/lib/panel-context";
 
 export function HistorySidebar() {
   const { state, goToHistoryItem, deleteHistoryItem, clearHistory } =
