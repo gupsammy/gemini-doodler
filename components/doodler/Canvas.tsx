@@ -225,7 +225,14 @@ export function Canvas() {
     if (!ctx || !state.canvasState.imageData) return;
 
     ctx.putImageData(state.canvasState.imageData, 0, 0);
-  }, [state.canvasState.imageData]);
+  }, [
+    state.canvasState.imageData,
+    state.canvasState.width,
+    state.canvasState.height,
+    state.canvasState.panOffset,
+    updateCanvasState,
+    addHistoryItem,
+  ]);
 
   // Text input handling
   useEffect(() => {
@@ -830,11 +837,13 @@ export function Canvas() {
 
       // Draw text at position, handle multiline
       const lines = textInput.value.split("\n");
+      // Store textInputPosition in a local variable to satisfy TypeScript
+      const textPosition = state.textInputPosition;
       lines.forEach((line, index) => {
         ctx.fillText(
           line,
-          state.textInputPosition.x,
-          state.textInputPosition.y + index * (fontSize * 1.2)
+          textPosition.x,
+          textPosition.y + index * (fontSize * 1.2)
         );
       });
 
