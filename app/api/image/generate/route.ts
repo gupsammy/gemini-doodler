@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   try {
     // Parse JSON request
     const requestData = (await req.json()) as GeminiGenerateRequest;
-    const { prompt, image: inputImage } = requestData;
+    const { prompt, image: inputImage, temperature = 0 } = requestData;
 
     if (!prompt) {
       return NextResponse.json(
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     const model = genAI.getGenerativeModel({
       model: MODEL_ID,
       generationConfig: {
-        temperature: 1,
+        temperature: temperature,
         topP: 0.95,
         topK: 40,
         // @ts-expect-error - Gemini API JS is missing this type

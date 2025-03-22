@@ -215,7 +215,11 @@ export function ToolBar() {
               const canvasWidth = canvas.width;
               const canvasHeight = canvas.height;
 
-              // Calculate scaling ratio
+              // Clear the canvas first
+              ctx.fillStyle = "#ffffff";
+              ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+              // Calculate scaling ratio to fit within canvas while maintaining aspect ratio
               const scaleRatio = Math.min(
                 canvasWidth / img.width,
                 canvasHeight / img.height

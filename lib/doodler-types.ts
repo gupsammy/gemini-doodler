@@ -51,6 +51,7 @@ export interface GeminiGenerateRequest {
   prompt: string;
   image?: string; // Base64 encoded current canvas
   history?: DoodleHistoryItem[]; // Previous interactions for context
+  temperature?: number; // Controls the creativity of the model (0-1)
 }
 
 export interface GeminiGenerateResponse {

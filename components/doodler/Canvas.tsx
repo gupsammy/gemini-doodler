@@ -92,24 +92,30 @@ export function Canvas() {
 
     // Function to resize canvas to fill screen
     const resizeCanvas = () => {
-      // Calculate canvas dimensions with max size 1024 for the longer edge
+      // Get the viewport dimensions with some padding
+      const padding = 32; // 16px padding on each side
+      const viewportWidth = window.innerWidth - padding;
+      const viewportHeight = window.innerHeight - padding;
+
+      // Calculate dimensions while maintaining aspect ratio and max dimension of 1024
       const maxDimension = 1024;
-
-      // Get the viewport aspect ratio
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      const aspectRatio = viewportWidth / viewportHeight;
-
       let canvasWidth, canvasHeight;
 
-      if (viewportWidth > viewportHeight) {
-        // Landscape orientation - width is the longer edge
-        canvasWidth = maxDimension;
-        canvasHeight = Math.round(maxDimension / aspectRatio);
+      // First, scale to fit viewport
+      if (viewportWidth / viewportHeight > 1) {
+        // Viewport is landscape
+        canvasHeight = Math.min(viewportHeight, maxDimension);
+        canvasWidth = Math.min(
+          canvasHeight * (viewportWidth / viewportHeight),
+          maxDimension
+        );
       } else {
-        // Portrait orientation - height is the longer edge
-        canvasHeight = maxDimension;
-        canvasWidth = Math.round(maxDimension * aspectRatio);
+        // Viewport is portrait
+        canvasWidth = Math.min(viewportWidth, maxDimension);
+        canvasHeight = Math.min(
+          canvasWidth * (viewportHeight / viewportWidth),
+          maxDimension
+        );
       }
 
       // Round dimensions to integers
@@ -122,6 +128,8 @@ export function Canvas() {
       canvas.style.top = "50%";
       canvas.style.left = "50%";
       canvas.style.transform = "translate(-50%, -50%)";
+      canvas.style.maxWidth = "calc(100% - 32px)"; // Account for padding
+      canvas.style.maxHeight = "calc(100% - 32px)"; // Account for padding
       canvas.style.border = "1px solid rgba(0, 0, 0, 0.1)";
       canvas.style.boxShadow = "0 0 20px rgba(0, 0, 0, 0.05)";
       canvas.style.borderRadius = "4px";

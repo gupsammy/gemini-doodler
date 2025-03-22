@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 export function PromptInput() {
   const { setIsPrompting, addHistoryItem } = useDoodler();
   const [prompt, setPrompt] = useState("");
+  const [temperature, setTemperature] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -104,6 +105,7 @@ export function PromptInput() {
         body: JSON.stringify({
           prompt: prompt.trim(),
           image: imageData,
+          temperature,
         }),
       });
 
@@ -125,7 +127,7 @@ export function PromptInput() {
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Calculate scaling and position to center the image
-            const scale = Math.max(
+            const scale = Math.min(
               canvas.width / img.width,
               canvas.height / img.height
             );
@@ -135,7 +137,7 @@ export function PromptInput() {
             const x = (canvas.width - scaledWidth) / 2;
             const y = (canvas.height - scaledHeight) / 2;
 
-            // Draw the image centered and scaled to fill the canvas
+            // Draw the image centered and scaled to fit the canvas
             ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
           };
           img.src = data.image;
@@ -168,35 +170,52 @@ export function PromptInput() {
       )}
       onClick={handleContainerClick}
     >
-      <div className="relative flex items-center">
-        <input
-          ref={inputRef}
-          type="text"
-          value={prompt}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          placeholder="Describe Edits (e.g., 'Add some hair')"
-          className="w-full pl-4 pr-12 py-3 bg-background/90 backdrop-blur-sm border-2 border-primary/20 rounded-xl shadow-lg shadow-primary/10 outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200"
-          disabled={isLoading}
-        />
-        <button
-          className={cn(
-            "absolute right-3 p-1 rounded-md",
-            isLoading
-              ? "opacity-50 cursor-not-allowed"
-              : "hover:bg-accent transition-colors",
-            !prompt.trim() && "opacity-50 cursor-not-allowed"
-          )}
-          onClick={handleSubmit}
-          disabled={isLoading || !prompt.trim()}
-          aria-label="Generate image from prompt"
-        >
-          {isLoading ? (
-            <div className="w-6 h-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-          ) : (
-            <Wand2 className="w-6 h-6 text-black" />
-          )}
-        </button>
+      <div className="flex flex-col items-start gap-2">
+        {/* Creativity Slider - Left aligned */}
+        <div className="flex items-center gap-2 w-1/3 bg-background/80 backdrop-blur-sm px-3 py-1 rounded-lg border border-primary/20">
+          <span className="text-sm font-medium text-black">ASD</span>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.1"
+            value={temperature}
+            onChange={(e) => setTemperature(parseFloat(e.target.value))}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
+          />
+        </div>
+
+        {/* Existing Prompt Input */}
+        <div className="relative flex items-center w-full">
+          <input
+            ref={inputRef}
+            type="text"
+            value={prompt}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder="Describe Edits (e.g., 'Add some hair')"
+            className="w-full pl-4 pr-12 py-3 bg-background/90 backdrop-blur-sm border-2 border-primary/20 rounded-xl shadow-lg shadow-primary/10 outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200"
+            disabled={isLoading}
+          />
+          <button
+            className={cn(
+              "absolute right-3 p-1 rounded-md",
+              isLoading
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-accent transition-colors",
+              !prompt.trim() && "opacity-50 cursor-not-allowed"
+            )}
+            onClick={handleSubmit}
+            disabled={isLoading || !prompt.trim()}
+            aria-label="Generate image from prompt"
+          >
+            {isLoading ? (
+              <div className="w-6 h-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            ) : (
+              <Wand2 className="w-6 h-6 text-black" />
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
