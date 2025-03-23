@@ -16,7 +16,7 @@ Gemini Doodler is an interactive web application that combines traditional drawi
 - **Canvas Navigation:** Pan and zoom functionality
 - **History Management:** Undo, redo, and view drawing history
 - **AI Image Generation:** Transform your drawings using text prompts
-- **Responsive Design:** Works on both desktop and mobile devices
+- **Responsive Design:** Works on best on desktop devices. Still optimizing for mobile.
 
 ## Demo
 
