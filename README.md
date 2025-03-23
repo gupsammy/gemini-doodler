@@ -48,7 +48,7 @@ Gemini Doodler is an interactive web application that combines traditional drawi
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/gemini-doodler.git
+   git clone https://github.com/gupsammy/gemini-doodler.git
    cd gemini-doodler
    ```
 
