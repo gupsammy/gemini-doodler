@@ -16,6 +16,12 @@ Gemini Doodler is an interactive web application that combines traditional drawi
 - **AI Image Generation:** Transform your drawings using text prompts
 - **Responsive Design:** Works on both desktop and mobile devices
 
+Collaborate with AI and edit your doodles
+<video src="https://drive.google.com/file/d/143CgV-HLbInoUhz8er9duBXgsssG6T9L/view?usp=sharing" controls width="100%"></video>
+
+Smart Targeted photo Editing
+<video src="https://drive.google.com/file/d/1T_o_x6JvGYlCc8LAUYltLYFz0rl2q0SY/view?usp=sharing" controls width="100%"></video>
+
 ## How to Use
 
 1. **Start Drawing:** Use the toolbar to select drawing tools and colors
