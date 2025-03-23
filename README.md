@@ -2,7 +2,7 @@
 
 A creative drawing application powered by Google's Gemini AI that lets you create and enhance artwork through generative AI.
 
-![Gemini Doodler](https://i.imgur.com/your-app-screenshot.png)
+![Gemini Doodler](./assets/Gemini-doodler.png)
 
 ## Overview
 
@@ -16,11 +16,15 @@ Gemini Doodler is an interactive web application that combines traditional drawi
 - **AI Image Generation:** Transform your drawings using text prompts
 - **Responsive Design:** Works on both desktop and mobile devices
 
-Collaborate with AI and edit your doodles
-<video src="https://drive.google.com/file/d/143CgV-HLbInoUhz8er9duBXgsssG6T9L/view?usp=sharing" controls width="100%"></video>
+## Demo
 
-Smart Targeted photo Editing
-<video src="https://drive.google.com/file/d/1T_o_x6JvGYlCc8LAUYltLYFz0rl2q0SY/view?usp=sharing" controls width="100%"></video>
+### Collaborate with AI and edit your doodles
+
+![AI Collaboration Demo](./assets/demo1.mp4)
+
+### Smart Targeted photo Editing
+
+![Smart Editing Demo](./assets/demo2.mp4)
 
 ## How to Use
 
