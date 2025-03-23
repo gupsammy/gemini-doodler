@@ -20,11 +20,11 @@ Gemini Doodler is an interactive web application that combines traditional drawi
 
 ### Collaborate with AI and edit your doodles
 
-![AI Collaboration Demo](./assets/demo1.mp4)
+![AI Collaboration Demo](./assets/demo1.gif)
 
 ### Smart Targeted photo Editing
 
-![Smart Editing Demo](./assets/demo2.mp4)
+![Smart Editing Demo](./assets/demo2.gif)
 
 ## How to Use
 
