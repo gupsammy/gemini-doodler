@@ -1,6 +1,7 @@
 # Gemini Doodler
 
 A creative drawing application powered by Google's Gemini AI that lets you create and enhance artwork through generative AI.
+
 Try out the app at [gemini-doodler.netlify.app](https://gemini-doodler.netlify.app).
 
 ![Gemini Doodler](./assets/Gemini-doodler.png)
